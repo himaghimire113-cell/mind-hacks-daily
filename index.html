@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Hacks Daily</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 15px; background: #050507; color: #fff; max-width: 500px; margin: 0 auto; }
+        header { text-align: center; padding: 25px 0 15px 0; }
+        h1 { color: #00e5ff; margin: 0; font-size: 28px; letter-spacing: 0.5px; }
+        p.subtitle { color: #666; font-size: 13px; margin: 5px 0 0 0; }
+        
+        #feedContainer { margin-top: 25px; }
+        
+        /* CARD BASE STYLE */
+        .post-card { background: #111115; margin-bottom: 25px; border-radius: 16px; overflow: hidden; border: 1px solid #1c1c24; box-shadow: 0 8px 16px rgba(0,0,0,0.3); padding: 20px; position: relative; }
+        .type-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; font-weight: bold; letter-spacing: 0.5px; }
+        
+        /* POST SPECIFIC TWEAKS */
+        .card-fact { border-left: 4px solid #a100ff; }
+        .card-video { padding: 0; } 
+        .card-blog { border-left: 4px solid #00e5ff; }
+
+        .post-title { margin: 0 0 10px 0; font-size: 18px; color: #fff; max-width: 80%; }
+        .video-title { padding: 15px 15px 5px 15px; margin: 0; font-size: 18px; }
+        .video-desc { padding: 0 15px 15px 15px; margin: 0; color: #b0b0b8; font-size: 14px; }
+        
+        .post-text { color: #b0b0b8; line-height: 1.6; font-size: 15px; margin: 0; }
+        .blog-text { white-space: pre-wrap; color: #d1d1d6; } 
+
+        /* ASPECT RATIO CONFIG FOR VERTICAL CONTENT FEED */
+        .video-container { position: relative; width: 100%; aspect-ratio: 9 / 16; background: #000; }
+        .video-container iframe, .video-container video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; object-fit: contain; }
+        
+        .loading { text-align: center; color: #444; margin-top: 40px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mind Hacks Daily</h1>
+        <p class="subtitle">Your destination for psychology, articles, & videos</p>
+    </header>
+
+    <div id="feedContainer">
+        <p class="loading">Loading dashboard updates...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVvqszP7rvTRXApR_VYEIxXTs84ToPfgs",
+            authDomain: "mind-hacks-daily.firebaseapp.com",
+            projectId: "mind-hacks-daily",
+            storageBucket: "mind-hacks-daily.firebasestorage.app",
+            messagingSenderId: "758474293685",
+            appId: "1:758474293685:web:c1bdb1ed42944ee40059fc",
+            measurementId: "G-ZMG3HT78FH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const container = document.getElementById('feedContainer');
+        const q = query(collection(db, "all_content"), orderBy("createdAt", "desc"));
+
+        // Unified rendering module for external streaming URLs or cloud assets
+        function parseVideoEmbed(url) {
+            if (!url) return "";
+            
+            // 1. Direct Cloud Uploads (Firebase Storage Assets)
+            if (url.includes("firebasestorage.googleapis.com") || url.includes(".mp4") || url.includes(".mov")) {
+                return `
+                    <div class="video-container">
+                        <video src="${url}" controls playsinline loop preload="metadata"></video>
+                    </div>`;
+            }
+            
+            // 2. Handle YouTube Links Fallback
+            let youtubeId = "";
+            if (url.includes("shorts/")) youtubeId = url.split("shorts/")[1].split("?")[0];
+            else if (url.includes("v=")) youtubeId = url.split("v=")[1].split("&")[0];
+            else if (url.includes("youtu.be/")) youtubeId = url.split("youtu.be/")[1].split("?")[0];
+
+            if (youtubeId) {
+                return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${youtubeId}" allowfullscreen></iframe></div>`;
+            }
+
+            // 3. Handle Facebook Embed Fallback
+            if (url.includes("facebook.com") || url.includes("fb.watch")) {
+                let cleanUrl = url.split("?")[0].split("&")[0].trim();
+                const encodedUrl = encodeURIComponent(cleanUrl);
+                return `
+                    <div class="video-container">
+                        <iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&t=0" 
+                            scrolling="no" frameborder="0" allowfullscreen="true" 
+                            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+                        </iframe>
+                    </div>`;
+            }
+
+            return `<p style="color:#ff4d4d; padding:15px; font-size:12px;">File link reading error.</p>`;
+        }
+
+        onSnapshot(q, (snapshot) => {
+            container.innerHTML = "";
+            
+            if (snapshot.empty) {
+                container.innerHTML = "<p class='loading'>No updates yet. Check back soon!</p>";
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const card = document.createElement('div');
+                
+                if (data.type === 'fact') {
+                    card.className = 'post-card card-fact';
+                    card.innerHTML = `
+                        <span class="type-badge" style="background:#a100ff1a; color:#a100ff;">Fact</span>
+                        <h3 class="post-title">${data.title}</h3>
+                        <p class="post-text">${data.text}</p>
+                    `;
+                } 
+                else if (data.type === 'blog') {
+                    card.className = 'post-card card-blog';
+                    card.innerHTML = `
+                        <span class="type-badge" style="background:#00e5ff1a; color:#00e5ff;">Article</span>
+                        <h3 class="post-title">${data.title}</h3>
+                        <p class="post-text blog-text">${data.text}</p>
+                    `;
+                } 
+                else if (data.type === 'video') {
+                    card.className = 'post-card card-video';
+                    card.innerHTML = `
+                        ${parseVideoEmbed(data.videoUrl)}
+                        <h3 class="video-title">${data.title}</h3>
+                        ${data.text ? `<p class="video-desc">${data.text}</p>` : ''}
+                    `;
+                }
+                
+                container.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>

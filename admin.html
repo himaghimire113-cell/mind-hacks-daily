@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Ultimate Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #0c0c0e; color: #fff; max-width: 500px; margin: 0 auto; }
+        h2 { color: #00e5ff; text-align: center; margin-bottom: 25px; }
+        label { font-size: 14px; color: #aaa; display: block; margin-top: 15px; }
+        select, input, textarea { width: 100%; padding: 14px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #222; background: #16161a; color: #fff; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 14px; background: #00e5ff; color: #000; font-weight: bold; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #00b3cc; }
+        .card { background: #16161a; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .card h4 { margin: 0; color: #fff; font-size: 15px; }
+        .badge { background: #333; color: #fff; padding: 3px 8px; font-size: 11px; border-radius: 4px; margin-left: 10px; text-transform: uppercase; }
+        .delete-btn { background: #ff4d4d; color: white; padding: 8px 12px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>Mind Hacks Control Panel</h2>
+    
+    <label>What are you posting?</label>
+    <select id="contentType">
+        <option value="fact">Short Psychology Fact (Text Only)</option>
+        <option value="video">Video Post (YouTube/Shorts Link)</option>
+        <option value="blog">Longer Blog Article</option>
+    </select>
+
+    <label>Heading / Title</label>
+    <input id="postTitle" placeholder="e.g., The Halo Effect">
+    
+    <div id="textSection">
+        <label>Body Text / Content</label>
+        <textarea id="postText" rows="6" placeholder="Type your fact or blog article content here..."></textarea>
+    </div>
+
+    <div id="videoSection" style="display: none;">
+        <label>YouTube Video / Shorts Link</label>
+        <input id="videoUrl" placeholder="Paste link here...">
+    </div>
+    
+    <button id="submitBtn">Publish Post</button>
+
+    <hr style="border: 0; border-top: 1px solid #222; margin: 30px 0;">
+
+    <h3>Live Content Feed</h3>
+    <div id="liveList">Loading feed...</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCVvqszP7rvTRXApR_VYEIxXTs84ToPfgs",
+            authDomain: "mind-hacks-daily.firebaseapp.com",
+            projectId: "mind-hacks-daily",
+            storageBucket: "mind-hacks-daily.firebasestorage.app",
+            messagingSenderId: "758474293685",
+            appId: "1:758474293685:web:c1bdb1ed42944ee40059fc",
+            measurementId: "G-ZMG3HT78FH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Dynamically show/hide fields based on type selection
+        const typeSelect = document.getElementById('contentType');
+        const textSection = document.getElementById('textSection');
+        const videoSection = document.getElementById('videoSection');
+
+        typeSelect.addEventListener('change', () => {
+            if (typeSelect.value === 'video') {
+                videoSection.style.display = 'block';
+                textSection.style.display = 'block'; // video can have description
+                document.getElementById('postText').placeholder = "Video description (Optional)...";
+            } else if (typeSelect.value === 'fact') {
+                videoSection.style.display = 'none';
+                textSection.style.display = 'block';
+                document.getElementById('postText').placeholder = "Type your quick psychology fact here...";
+            } else {
+                videoSection.style.display = 'none';
+                textSection.style.display = 'block';
+                document.getElementById('postText').placeholder = "Write your full blog article content here...";
+            }
+        });
+
+        // PUBLISH TO FIREBASE
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const type = typeSelect.value;
+            const title = document.getElementById('postTitle').value.trim();
+            const text = document.getElementById('postText').value.trim();
+            const videoUrl = document.getElementById('videoUrl').value.trim();
+            
+            if (!title) return alert('Please enter a title!');
+            if (type !== 'video' && !text) return alert('Please enter content text!');
+            if (type === 'video' && !videoUrl) return alert('Please paste a video link!');
+
+            try {
+                await addDoc(collection(db, "all_content"), {
+                    type: type,
+                    title: title,
+                    text: text,
+                    videoUrl: videoUrl,
+                    createdAt: serverTimestamp()
+                });
+                alert('Success! Content is now live.');
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postText').value = '';
+                document.getElementById('videoUrl').value = '';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // LIVE FEED DISPLAY & ACCESSIBLE DELETIONS
+        const liveList = document.getElementById('liveList');
+        const q = query(collection(db, "all_content"), orderBy("createdAt", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+            liveList.innerHTML = "";
+            if (snapshot.empty) {
+                liveList.innerHTML = "<p style='color:#666;'>No posts created yet.</p>";
+                return;
+            }
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                
+                let badgeColor = data.type === 'video' ? '#ff0055' : (data.type === 'blog' ? '#00e5ff' : '#a100ff');
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div>
+                        <h4>${data.title} <span class="badge" style="background:${badgeColor}">${data.type}</span></h4>
+                    </div>
+                    <button class="delete-btn" data-id="${id}">Delete</button>
+                `;
+                liveList.appendChild(card);
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const docId = e.target.getAttribute('data-id');
+                    if (confirm('Delete this item from your live website?')) {
+                        try {
+                            await deleteDoc(doc(db, "all_content", docId));
+                        } catch (err) {
+                            alert("Error: " + err.message);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
