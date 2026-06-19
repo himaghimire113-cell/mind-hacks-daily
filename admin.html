@@ -3,157 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Ultimate Panel</title>
+    <title>Admin Panel - Mind Hacks Daily</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #0c0c0e; color: #fff; max-width: 500px; margin: 0 auto; }
-        h2 { color: #00e5ff; text-align: center; margin-bottom: 25px; }
-        label { font-size: 14px; color: #aaa; display: block; margin-top: 15px; }
-        select, input, textarea { width: 100%; padding: 14px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #222; background: #16161a; color: #fff; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; background: #00e5ff; color: #000; font-weight: bold; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #00b3cc; }
-        .card { background: #16161a; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .card h4 { margin: 0; color: #fff; font-size: 15px; }
-        .badge { background: #333; color: #fff; padding: 3px 8px; font-size: 11px; border-radius: 4px; margin-left: 10px; text-transform: uppercase; }
-        .delete-btn { background: #ff4d4d; color: white; padding: 8px 12px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #bbb; }
+        input[type="text"], textarea, select { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
+        .delete-btn { background: #dc3545; padding: 8px 12px; font-size: 14px; width: auto; }
+        .post-item { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        h2 { border-bottom: 1px solid #333; padding-bottom: 10px; }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <h2>Mind Hacks Control Panel</h2>
-    
-    <label>What are you posting?</label>
-    <select id="contentType">
-        <option value="fact">Short Psychology Fact (Text Only)</option>
-        <option value="video">Video Post (YouTube/Shorts Link)</option>
-        <option value="blog">Longer Blog Article</option>
-    </select>
-
-    <label>Heading / Title</label>
-    <input id="postTitle" placeholder="e.g., The Halo Effect">
-    
-    <div id="textSection">
-        <label>Body Text / Content</label>
-        <textarea id="postText" rows="6" placeholder="Type your fact or blog article content here..."></textarea>
+    <h2>Publish Content</h2>
+    <div class="form-group">
+        <label>Post Type</label>
+        <select id="postType" onchange="toggleFields()">
+            <option value="video">Video</option>
+            <option value="text">Short Text</option>
+            <option value="blog">Blog Post</option>
+        </select>
     </div>
-
-    <div id="videoSection" style="display: none;">
-        <label>YouTube Video / Shorts Link</label>
-        <input id="videoUrl" placeholder="Paste link here...">
-    </div>
-    
+    <div class="form-group"><label>Title</label><input type="text" id="videoTitle"></div>
+    <div class="form-group" id="urlGroup"><label>URL</label><input type="text" id="videoUrl"></div>
+    <div class="form-group" id="contentGroup" style="display:none;"><label>Content</label><textarea id="postContent" rows="3"></textarea></div>
     <button id="submitBtn">Publish Post</button>
 
-    <hr style="border: 0; border-top: 1px solid #222; margin: 30px 0;">
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;">
 
-    <h3>Live Content Feed</h3>
-    <div id="liveList">Loading feed...</div>
+    <h2>Manage Posts</h2>
+    <div id="postList">Loading...</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+    <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCVvqszP7rvTRXApR_VYEIxXTs84ToPfgs",
+            apiKey: "YOUR_API_KEY",
             authDomain: "mind-hacks-daily.firebaseapp.com",
             projectId: "mind-hacks-daily",
-            storageBucket: "mind-hacks-daily.firebasestorage.app",
-            messagingSenderId: "758474293685",
-            appId: "1:758474293685:web:c1bdb1ed42944ee40059fc",
-            measurementId: "G-ZMG3HT78FH"
+            storageBucket: "mind-hacks-daily.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // Dynamically show/hide fields based on type selection
-        const typeSelect = document.getElementById('contentType');
-        const textSection = document.getElementById('textSection');
-        const videoSection = document.getElementById('videoSection');
+        // 1. Toggle Inputs
+        function toggleFields() {
+            const type = document.getElementById('postType').value;
+            document.getElementById('urlGroup').style.display = (type === 'video') ? 'block' : 'none';
+            document.getElementById('contentGroup').style.display = (type !== 'video') ? 'block' : 'none';
+        }
 
-        typeSelect.addEventListener('change', () => {
-            if (typeSelect.value === 'video') {
-                videoSection.style.display = 'block';
-                textSection.style.display = 'block'; // video can have description
-                document.getElementById('postText').placeholder = "Video description (Optional)...";
-            } else if (typeSelect.value === 'fact') {
-                videoSection.style.display = 'none';
-                textSection.style.display = 'block';
-                document.getElementById('postText').placeholder = "Type your quick psychology fact here...";
-            } else {
-                videoSection.style.display = 'none';
-                textSection.style.display = 'block';
-                document.getElementById('postText').placeholder = "Write your full blog article content here...";
-            }
-        });
-
-        // PUBLISH TO FIREBASE
+        // 2. Publish Logic
         document.getElementById('submitBtn').addEventListener('click', async () => {
-            const type = typeSelect.value;
-            const title = document.getElementById('postTitle').value.trim();
-            const text = document.getElementById('postText').value.trim();
-            const videoUrl = document.getElementById('videoUrl').value.trim();
-            
-            if (!title) return alert('Please enter a title!');
-            if (type !== 'video' && !text) return alert('Please enter content text!');
-            if (type === 'video' && !videoUrl) return alert('Please paste a video link!');
-
-            try {
-                await addDoc(collection(db, "all_content"), {
-                    type: type,
-                    title: title,
-                    text: text,
-                    videoUrl: videoUrl,
-                    createdAt: serverTimestamp()
-                });
-                alert('Success! Content is now live.');
-                document.getElementById('postTitle').value = '';
-                document.getElementById('postText').value = '';
-                document.getElementById('videoUrl').value = '';
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            await db.collection('videos').add({
+                type: document.getElementById('postType').value,
+                title: document.getElementById('videoTitle').value,
+                url: document.getElementById('videoUrl').value,
+                content: document.getElementById('postContent').value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Posted!');
         });
 
-        // LIVE FEED DISPLAY & ACCESSIBLE DELETIONS
-        const liveList = document.getElementById('liveList');
-        const q = query(collection(db, "all_content"), orderBy("createdAt", "desc"));
-
-        onSnapshot(q, (snapshot) => {
-            liveList.innerHTML = "";
-            if (snapshot.empty) {
-                liveList.innerHTML = "<p style='color:#666;'>No posts created yet.</p>";
-                return;
-            }
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const id = docSnap.id;
-                
-                let badgeColor = data.type === 'video' ? '#ff0055' : (data.type === 'blog' ? '#00e5ff' : '#a100ff');
-                
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div>
-                        <h4>${data.title} <span class="badge" style="background:${badgeColor}">${data.type}</span></h4>
-                    </div>
-                    <button class="delete-btn" data-id="${id}">Delete</button>
+        // 3. Manage/Delete Logic
+        db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+            const list = document.getElementById('postList');
+            list.innerHTML = '';
+            snapshot.forEach(doc => {
+                const item = document.createElement('div');
+                item.className = 'post-item';
+                item.innerHTML = `
+                    <span>${doc.data().title}</span>
+                    <button class="delete-btn" onclick="deletePost('${doc.id}')">Delete</button>
                 `;
-                liveList.appendChild(card);
-            });
-
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const docId = e.target.getAttribute('data-id');
-                    if (confirm('Delete this item from your live website?')) {
-                        try {
-                            await deleteDoc(doc(db, "all_content", docId));
-                        } catch (err) {
-                            alert("Error: " + err.message);
-                        }
-                    }
-                });
+                list.appendChild(item);
             });
         });
+
+        async function deletePost(id) {
+            if(confirm('Are you sure you want to delete this post?')) {
+                await db.collection('videos').doc(id).delete();
+            }
+        }
     </script>
 </body>
 </html>
