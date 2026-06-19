@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post — Mind Hacks Daily</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── Tokens ───────────────────────────────────────────── */
+        :root {
+            --bg:       #080808;
+            --surface:  #0f0f0f;
+            --blue:     #007bff;
+            --cyan:     #00c2ff;
+            --border:   rgba(255,255,255,0.07);
+            --text:     #ffffff;
+            --body-txt: rgba(255,255,255,0.78);
+            --muted:    rgba(255,255,255,0.38);
+            --font:     'Space Grotesk', Arial, sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* ── Nav ──────────────────────────────────────────────── */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(8,8,8,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--blue); }
+
+        .back-arrow {
+            font-size: 16px;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover .back-arrow { transform: translateX(-3px); }
+
+        .nav-logo {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .nav-logo span { color: var(--blue); }
+
+        /* ── Page layout ──────────────────────────────────────── */
+        .page {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 36px 16px 0;
+        }
+
+        /* ── Skeleton loader ──────────────────────────────────── */
+        .skeleton {
+            background: linear-gradient(90deg, #161616 25%, #1e1e1e 50%, #161616 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-title  { height: 36px; width: 80%; margin-bottom: 14px; }
+        .skeleton-meta   { height: 14px; width: 40%; margin-bottom: 28px; }
+        .skeleton-media  { height: 260px; width: 100%; margin-bottom: 24px; }
+        .skeleton-line   { height: 14px; width: 100%; margin-bottom: 10px; }
+        .skeleton-line.short { width: 65%; }
+
+        /* ── Post content ─────────────────────────────────────── */
+        .post-wrap {
+            animation: fade-up 0.4s ease both;
+        }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Type badge */
+        .post-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+        }
+
+        .post-badge.video { background: rgba(0,123,255,0.12); color: var(--cyan); }
+        .post-badge.image { background: rgba(168,85,247,0.12); color: #c084fc; }
+        .post-badge.text  { background: rgba(16,185,129,0.12); color: #34d399; }
+        .post-badge.blog  { background: rgba(167,139,250,0.12); color: #a78bfa; }
+
+        /* Title */
+        .post-title {
+            font-size: clamp(22px, 6vw, 34px);
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        /* Meta row */
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .meta-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue);
+            flex-shrink: 0;
+        }
+
+        .meta-date {
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Divider */
+        .post-divider {
+            height: 1px;
+            background: var(--border);
+            margin-bottom: 28px;
+        }
+
+        /* Media */
+        .yt-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .yt-container iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 14px;
+            display: block;
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+        }
+
+        /* Body text */
+        .post-body {
+            font-size: 17px;
+            line-height: 1.8;
+            color: var(--body-txt);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-body p + p { margin-top: 1.2em; }
+
+        /* ── Error / Not found ────────────────────────────────── */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-icon  { font-size: 40px; margin-bottom: 16px; }
+
+        .error-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .error-msg {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .error-btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background: rgba(0,123,255,0.12);
+            border: 1px solid rgba(0,123,255,0.3);
+            color: var(--blue);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            transition: background 0.2s;
+        }
+
+        .error-btn:hover { background: rgba(0,123,255,0.22); }
+
+        /* ── Bottom back button ───────────────────────────────── */
+        .bottom-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 48px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            transition: color 0.2s;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            width: 100%;
+        }
+
+        .bottom-back:hover { color: var(--blue); }
+
+        /* ── Reduced motion ───────────────────────────────────── */
+        @media (prefers-reduced-motion: reduce) {
+            .skeleton { animation: none; }
+            .post-wrap { animation: none; }
+            .back-arrow { transition: none; }
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- ── Nav ───────────────────────────────────────────── -->
+    <nav class="nav">
+        <a href="index.html" class="back-link">
+            <span class="back-arrow">←</span> Feed
+        </a>
+        <div class="nav-logo">Mind <span>Hacks</span> Daily</div>
+    </nav>
+
+    <!-- ── Post ──────────────────────────────────────────── -->
+    <main class="page">
+        <div id="postContainer">
+            <div id="skeleton">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-meta"></div>
+                <div class="skeleton skeleton-media"></div>
+                <div class="skeleton skeleton-line"></div>
+                <div class="skeleton skeleton-line"></div>
+                <div class="skeleton skeleton-line short"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* ── Firebase ────────────────────────────────────── */
+        const firebaseConfig = {
+            apiKey:            "YOUR_API_KEY",
+            authDomain:        "mind-hacks-daily.firebaseapp.com",
+            projectId:         "mind-hacks-daily",
+            storageBucket:     "mind-hacks-daily.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId:             "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        /* ── Helpers ─────────────────────────────────────── */
+        function getEmbedUrl(url) {
+            if (!url) return '';
+            if (url.includes('shorts/'))   return url.replace('shorts/', 'embed/');
+            if (url.includes('watch?v='))  return url.replace('watch?v=', 'embed/');
+            if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+            return url;
+        }
+
+        function formatDate(ts) {
+            if (!ts) return '';
+            const d = ts.toDate ? ts.toDate() : new Date(ts);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function showError(title, msg) {
+            document.getElementById('postContainer').innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚡</div>
+                    <div class="error-title">${title}</div>
+                    <div class="error-msg">${msg}</div>
+                    <a href="index.html" class="error-btn">← Back to Feed</a>
+                </div>
+            `;
+        }
+
+        /* ── Load Post ───────────────────────────────────── */
+        const postId = new URLSearchParams(window.location.search).get('id');
+
+        if (!postId) {
+            showError('No post found.', 'The URL is missing a post ID.');
+        } else {
+            db.collection('videos').doc(postId).get()
+                .then((doc) => {
+                    if (!doc.exists) {
+                        showError('Post not found.', 'This post may have been deleted.');
+                        return;
+                    }
+
+                    const data = doc.data();
+                    const type = data.type || 'text';
+
+                    if (data.title) document.title = `${data.title} — Mind Hacks Daily`;
+
+                    let mediaHtml = '';
+                    if (type === 'video' && data.url) {
+                        const isFB = data.url.includes('facebook.com') || data.url.includes('fb.watch');
+                        mediaHtml = isFB
+                            ? `<a href="${data.url}" target="_blank" style="display:block;padding:14px;background:rgba(0,123,255,0.1);border:1px solid rgba(0,123,255,0.25);border-radius:10px;color:var(--blue);font-weight:700;text-align:center;text-decoration:none;margin-bottom:28px;">▶ Watch on Facebook</a>`
+                            : `<div class="yt-container"><iframe src="${getEmbedUrl(data.url)}" allowfullscreen loading="lazy"></iframe></div>`;
+                    } else if (type === 'image' && data.imageUrl) {
+                        mediaHtml = `<img src="${data.imageUrl}" class="post-image" alt="${data.title || 'Post image'}">`;
+                    }
+
+                    const bodyText = (data.content || '').trim();
+                    const bodyHtml = bodyText
+                        ? `<div class="post-body">${bodyText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>`
+                        : '';
+
+                    document.getElementById('postContainer').innerHTML = `
+                        <div class="post-wrap">
+                            <span class="post-badge ${type}">${type}</span>
+                            <h1 class="post-title">${data.title || 'Untitled'}</h1>
+                            <div class="post-meta">
+                                <div class="meta-dot"></div>
+                                <div class="meta-date">${formatDate(data.createdAt)}</div>
+                            </div>
+                            <div class="post-divider"></div>
+                            ${mediaHtml}
+                            ${bodyHtml}
+                            <a href="index.html" class="bottom-back">← Back to Feed</a>
+                        </div>
+                    `;
+                })
+                .catch((err) => {
+                    console.error(err);
+                    showError('Something went wrong.', 'Could not load this post. Please try again.');
+                });
+        }
+    </script>
+</body>
+</html>

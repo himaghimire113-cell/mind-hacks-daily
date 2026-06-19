@@ -3,82 +3,557 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Mind Hacks Daily</title>
+    <title>Admin — Mind Hacks Daily</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #bbb; }
-        input[type="text"], textarea, select { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
-        .delete-btn { background: #dc3545; padding: 8px 12px; font-size: 14px; width: auto; }
-        .post-item { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        h2 { border-bottom: 1px solid #333; padding-bottom: 10px; }
+        /* ── Tokens ───────────────────────────────────────────── */
+        :root {
+            --bg:        #080808;
+            --surface:   #0f0f0f;
+            --surface2:  #161616;
+            --input-bg:  #111111;
+            --blue:      #007bff;
+            --cyan:      #00c2ff;
+            --border:    rgba(255,255,255,0.07);
+            --border-h:  rgba(0,123,255,0.4);
+            --text:      #ffffff;
+            --muted:     rgba(255,255,255,0.38);
+            --danger:    #e5334a;
+            --success:   #10b981;
+            --font:      'Space Grotesk', Arial, sans-serif;
+            --radius:    12px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* ── Top Bar ──────────────────────────────────────────── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: rgba(8,8,8,0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-logo {
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .topbar-logo span { color: var(--blue); }
+
+        .topbar-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            background: rgba(0,194,255,0.1);
+            border: 1px solid rgba(0,194,255,0.2);
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+
+        /* ── Layout ───────────────────────────────────────────── */
+        .page {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 28px 16px 0;
+        }
+
+        /* ── Section titles ───────────────────────────────────── */
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Publish Card ─────────────────────────────────────── */
+        .publish-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 32px;
+        }
+
+        /* Type Selector Tabs */
+        .type-tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 22px;
+        }
+
+        .type-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .type-tab .tab-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .type-tab:hover {
+            border-color: var(--border-h);
+            color: var(--text);
+        }
+
+        .type-tab.active {
+            border-color: var(--blue);
+            background: rgba(0,123,255,0.1);
+            color: var(--blue);
+        }
+
+        /* Form groups */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            font-family: var(--font);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--blue);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 110px;
+            line-height: 1.6;
+        }
+
+        /* Dynamic field reveal */
+        .dynamic-field {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.25s ease;
+        }
+
+        .dynamic-field.visible {
+            max-height: 300px;
+            opacity: 1;
+        }
+
+        /* Publish Button */
+        .publish-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--font);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .publish-btn:hover   { background: #0069d9; }
+        .publish-btn:active  { transform: scale(0.98); }
+        .publish-btn:disabled {
+            background: rgba(0,123,255,0.35);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── Toast ────────────────────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            z-index: 200;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.success {
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.35);
+            color: #34d399;
+        }
+
+        .toast.error {
+            background: rgba(229,51,74,0.15);
+            border: 1px solid rgba(229,51,74,0.35);
+            color: #f87171;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* ── Manage Posts ─────────────────────────────────────── */
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .post-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: border-color 0.2s;
+            animation: item-in 0.3s ease both;
+        }
+
+        @keyframes item-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .post-item:hover { border-color: var(--border-h); }
+
+        .post-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .post-type-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .post-type-dot.video { background: var(--blue); }
+        .post-type-dot.text  { background: var(--success); }
+        .post-type-dot.blog  { background: #a78bfa; }
+        .post-type-dot.image { background: #f472b6; }
+
+        .post-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .post-type-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .delete-btn {
+            flex-shrink: 0;
+            background: transparent;
+            color: rgba(229,51,74,0.55);
+            border: 1px solid rgba(229,51,74,0.2);
+            padding: 5px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger);
+            border-color: rgba(229,51,74,0.5);
+            background: rgba(229,51,74,0.08);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 32px 0;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Reduced motion ───────────────────────────────────── */
+        @media (prefers-reduced-motion: reduce) {
+            .dynamic-field, .toast, .post-item { transition: none; animation: none; }
+        }
     </style>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <h2>Publish Content</h2>
-    <div class="form-group">
-        <label>Post Type</label>
-        <select id="postType" onchange="toggleFields()">
-            <option value="video">Video</option>
-            <option value="text">Short Text</option>
-            <option value="blog">Blog Post</option>
-        </select>
-    </div>
-    <div class="form-group"><label>Title</label><input type="text" id="videoTitle"></div>
-    <div class="form-group" id="urlGroup"><label>URL</label><input type="text" id="videoUrl"></div>
-    <div class="form-group" id="contentGroup" style="display:none;"><label>Content</label><textarea id="postContent" rows="3"></textarea></div>
-    <button id="submitBtn">Publish Post</button>
+    <!-- ── Top Bar ────────────────────────────────────────── -->
+    <header class="topbar">
+        <div class="topbar-logo">Mind <span>Hacks</span> Daily</div>
+        <div class="topbar-badge">Admin Panel</div>
+    </header>
 
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;">
+    <main class="page">
 
-    <h2>Manage Posts</h2>
-    <div id="postList">Loading...</div>
+        <!-- ── Publish ──────────────────────────────────── -->
+        <div class="section-title">Publish New Post</div>
+
+        <div class="publish-card">
+
+            <!-- Type tabs -->
+            <div class="type-tabs" id="typeTabs">
+                <button class="type-tab active" data-type="video">
+                    <span class="tab-icon">▶</span> Video
+                </button>
+                <button class="type-tab" data-type="text">
+                    <span class="tab-icon">✏️</span> Text
+                </button>
+                <button class="type-tab" data-type="blog">
+                    <span class="tab-icon">📝</span> Blog
+                </button>
+                <button class="type-tab" data-type="image">
+                    <span class="tab-icon">🖼</span> Image
+                </button>
+            </div>
+
+            <input type="hidden" id="postType" value="video">
+
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="videoTitle" placeholder="Enter a compelling title…">
+            </div>
+
+            <div class="form-group dynamic-field visible" id="urlGroup">
+                <label>Video URL</label>
+                <input type="text" id="videoUrl" placeholder="YouTube or Facebook URL">
+            </div>
+
+            <div class="form-group dynamic-field" id="contentGroup">
+                <label>Content</label>
+                <textarea id="postContent" placeholder="Write your content here…"></textarea>
+            </div>
+
+            <div class="form-group dynamic-field" id="imageGroup">
+                <label>Image URL</label>
+                <input type="text" id="imageUrl" placeholder="https://…">
+            </div>
+
+            <button class="publish-btn" id="submitBtn">
+                <span id="btnText">Publish Post</span>
+            </button>
+        </div>
+
+        <!-- ── Manage ────────────────────────────────────── -->
+        <div class="section-title">Manage Posts</div>
+        <div class="post-list" id="postList">
+            <div class="empty-state">Loading posts…</div>
+        </div>
+
+    </main>
+
+    <div class="toast" id="toast"></div>
 
     <script>
+        /* ── Firebase ────────────────────────────────────── */
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "mind-hacks-daily.firebaseapp.com",
-            projectId: "mind-hacks-daily",
-            storageBucket: "mind-hacks-daily.appspot.com",
+            apiKey:            "YOUR_API_KEY",
+            authDomain:        "mind-hacks-daily.firebaseapp.com",
+            projectId:         "mind-hacks-daily",
+            storageBucket:     "mind-hacks-daily.appspot.com",
             messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            appId:             "YOUR_APP_ID"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. Toggle Inputs
-        function toggleFields() {
-            const type = document.getElementById('postType').value;
-            document.getElementById('urlGroup').style.display = (type === 'video') ? 'block' : 'none';
-            document.getElementById('contentGroup').style.display = (type !== 'video') ? 'block' : 'none';
+        /* ── Toast ───────────────────────────────────────── */
+        let toastTimer;
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { t.className = `toast ${type}`; }, 3000);
         }
 
-        // 2. Publish Logic
-        document.getElementById('submitBtn').addEventListener('click', async () => {
-            await db.collection('videos').add({
-                type: document.getElementById('postType').value,
-                title: document.getElementById('videoTitle').value,
-                url: document.getElementById('videoUrl').value,
-                content: document.getElementById('postContent').value,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        /* ── Type Tabs ───────────────────────────────────── */
+        const tabs = document.querySelectorAll('.type-tab');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('postType').value = tab.dataset.type;
+                toggleFields(tab.dataset.type);
             });
-            alert('Posted!');
         });
 
-        // 3. Manage/Delete Logic
+        function toggleFields(type) {
+            const show = (id) => document.getElementById(id).classList.add('visible');
+            const hide = (id) => document.getElementById(id).classList.remove('visible');
+            hide('urlGroup'); hide('contentGroup'); hide('imageGroup');
+            if (type === 'video') show('urlGroup');
+            if (type === 'text' || type === 'blog') show('contentGroup');
+            if (type === 'image') show('imageGroup');
+        }
+
+        /* ── Publish ─────────────────────────────────────── */
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const type  = document.getElementById('postType').value;
+            const title = document.getElementById('videoTitle').value.trim();
+
+            if (!title) { showToast('Please enter a title.', 'error'); return; }
+
+            const btn  = document.getElementById('submitBtn');
+            const text = document.getElementById('btnText');
+            btn.disabled = true;
+            text.textContent = 'Publishing…';
+
+            try {
+                await db.collection('videos').add({
+                    type,
+                    title,
+                    url:      document.getElementById('videoUrl').value.trim(),
+                    content:  document.getElementById('postContent').value.trim(),
+                    imageUrl: document.getElementById('imageUrl').value.trim(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('✓ Published successfully!', 'success');
+                document.getElementById('videoTitle').value  = '';
+                document.getElementById('videoUrl').value    = '';
+                document.getElementById('postContent').value = '';
+                document.getElementById('imageUrl').value    = '';
+            } catch (err) {
+                showToast('Failed to publish. Try again.', 'error');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                text.textContent = 'Publish Post';
+            }
+        });
+
+        /* ── Manage Posts ────────────────────────────────── */
         db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
             const list = document.getElementById('postList');
             list.innerHTML = '';
+
+            if (snapshot.empty) {
+                list.innerHTML = '<div class="empty-state">No posts yet. Publish your first hack above.</div>';
+                return;
+            }
+
+            let delay = 0;
             snapshot.forEach(doc => {
+                const data = doc.data();
+                const type = data.type || 'text';
                 const item = document.createElement('div');
                 item.className = 'post-item';
+                item.style.animationDelay = `${delay}ms`;
+                delay += 40;
                 item.innerHTML = `
-                    <span>${doc.data().title}</span>
+                    <div class="post-item-left">
+                        <div class="post-type-dot ${type}"></div>
+                        <div>
+                            <div class="post-title">${data.title || 'Untitled'}</div>
+                            <div class="post-type-label">${type}</div>
+                        </div>
+                    </div>
                     <button class="delete-btn" onclick="deletePost('${doc.id}')">Delete</button>
                 `;
                 list.appendChild(item);
@@ -86,8 +561,13 @@
         });
 
         async function deletePost(id) {
-            if(confirm('Are you sure you want to delete this post?')) {
-                await db.collection('videos').doc(id).delete();
+            if (confirm('Delete this post permanently?')) {
+                try {
+                    await db.collection('videos').doc(id).delete();
+                    showToast('Post deleted.', 'success');
+                } catch (err) {
+                    showToast('Delete failed.', 'error');
+                }
             }
         }
     </script>
