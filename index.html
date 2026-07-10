@@ -1,788 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mind Hacks Daily</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg:      #060608;
-            --surface: #0f0f12;
-            --blue:    #007bff;
-            --cyan:    #00c2ff;
-            --purple:  #a855f7;
-            --pink:    #ec4899;
-            --green:   #10b981;
-            --border:  rgba(255,255,255,0.07);
-            --border-h:rgba(0,123,255,0.4);
-            --text:    #ffffff;
-            --muted:   rgba(255,255,255,0.38);
-            --font:    'Space Grotesk', Arial, sans-serif;
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ── Nav ─────────────────────────────────────────────── */
-        .nav {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 13px 20px;
-            background: rgba(6,6,8,0.75);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .nav-logo {
-            font-size: 14px;
-            font-weight: 900;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .nav-logo span { color: var(--blue); }
-
-        .nav-time {
-            background: rgba(0,123,255,0.1);
-            border: 1px solid rgba(0,123,255,0.22);
-            border-radius: 999px;
-            padding: 4px 13px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--blue);
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.05em;
-        }
-
-        /* ── Hero ────────────────────────────────────────────── */
-        .hero {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.55;
-            pointer-events: none;
-        }
-
-        .orb-1 {
-            width: 420px; height: 420px;
-            background: radial-gradient(circle, #007bff, transparent 70%);
-            top: -80px; left: -100px;
-            animation: float-1 8s ease-in-out infinite;
-        }
-
-        .orb-2 {
-            width: 350px; height: 350px;
-            background: radial-gradient(circle, #a855f7, transparent 70%);
-            top: 10%; right: -80px;
-            animation: float-2 10s ease-in-out infinite;
-        }
-
-        .orb-3 {
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, #00c2ff, transparent 70%);
-            bottom: 5%; left: 10%;
-            animation: float-3 9s ease-in-out infinite;
-        }
-
-        .orb-4 {
-            width: 260px; height: 260px;
-            background: radial-gradient(circle, #ec4899, transparent 70%);
-            bottom: 15%; right: 5%;
-            animation: float-4 11s ease-in-out infinite;
-        }
-
-        @keyframes float-1 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            33%      { transform: translate(40px, 30px) scale(1.08); }
-            66%      { transform: translate(-20px, 50px) scale(0.95); }
-        }
-        @keyframes float-2 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            40%      { transform: translate(-50px, 40px) scale(1.1); }
-            70%      { transform: translate(20px, -30px) scale(0.92); }
-        }
-        @keyframes float-3 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            30%      { transform: translate(30px,-40px) scale(1.05); }
-            60%      { transform: translate(-40px,20px) scale(1.12); }
-        }
-        @keyframes float-4 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            50%      { transform: translate(-30px,-50px) scale(1.08); }
-        }
-
-        #heroCanvas {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            opacity: 0.4;
-        }
-
-        .hero-vignette {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            background: radial-gradient(ellipse 80% 70% at 50% 50%, transparent 20%, rgba(6,6,8,0.65) 70%, #060608 100%);
-            pointer-events: none;
-        }
-
-        .clock-bg {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        .clock-bg-time {
-            font-size: clamp(70px, 26vw, 240px);
-            font-weight: 900;
-            letter-spacing: -0.04em;
-            color: transparent;
-            -webkit-text-stroke: 1px rgba(0,194,255,0.1);
-            white-space: nowrap;
-            animation: stroke-pulse 5s ease-in-out infinite;
-        }
-
-        @keyframes stroke-pulse {
-            0%,100% { -webkit-text-stroke-color: rgba(0,194,255,0.08); }
-            50%      { -webkit-text-stroke-color: rgba(168,85,247,0.18); }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 3;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .hero-eyebrow {
-            font-size: 10px;
-            letter-spacing: 0.35em;
-            text-transform: uppercase;
-            color: var(--cyan);
-            margin-bottom: 10px;
-            opacity: 0.8;
-        }
-
-        .hero-title {
-            font-size: clamp(26px, 7vw, 54px);
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            line-height: 1;
-            background: linear-gradient(135deg, #fff 30%, var(--cyan) 70%, var(--purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-clock-live {
-            margin-top: 16px;
-            font-size: clamp(40px, 14vw, 108px);
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            background: linear-gradient(135deg, var(--blue), var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 0 20px rgba(0,123,255,0.5));
-            animation: flicker 9s ease-in-out infinite;
-        }
-
-        @keyframes flicker {
-            0%,45%,47%,51%,53%,100% { opacity: 1; }
-            46%,52%                  { opacity: 0.82; }
-        }
-
-        .hero-date {
-            margin-top: 10px;
-            font-size: clamp(11px, 3vw, 14px);
-            color: var(--muted);
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-        }
-
-        .hero-welcome {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .hero-welcome p {
-            font-size: clamp(12px, 3vw, 15px);
-            color: rgba(255,255,255,0.45);
-            letter-spacing: 0.05em;
-            line-height: 1.6;
-        }
-
-        .hero-welcome p:first-child {
-            color: rgba(255,255,255,0.78);
-            font-weight: 600;
-            font-size: clamp(13px, 3.5vw, 16px);
-        }
-
-        .scroll-cue {
-            position: absolute;
-            bottom: 26px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 7px;
-            color: var(--muted);
-            font-size: 10px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-        }
-
-        .scroll-line {
-            width: 1px;
-            height: 34px;
-            background: linear-gradient(to bottom, var(--blue), transparent);
-            animation: line-drop 2.2s ease-in-out infinite;
-        }
-
-        @keyframes line-drop {
-            0%   { transform: scaleY(0); transform-origin: top; opacity: 0; }
-            45%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
-            80%  { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
-            100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
-        }
-
-        /* ── Feed Section ────────────────────────────────────── */
-        .feed-section {
-            padding: 50px 16px 80px;
-        }
-
-        /* ── Filter Bar ──────────────────────────────────────── */
-        .filter-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 32px;
-        }
-
-        .filter-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--muted);
-            font-family: var(--font);
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .filter-btn:hover {
-            border-color: var(--border-h);
-            color: var(--text);
-        }
-
-        .filter-btn.active {
-            color: #fff;
-            border-color: transparent;
-        }
-
-        .filter-btn[data-filter="all"].active    { background: linear-gradient(135deg,var(--blue),var(--cyan)); }
-        .filter-btn[data-filter="video"].active  { background: linear-gradient(135deg,var(--blue),#0050cc); }
-        .filter-btn[data-filter="image"].active  { background: linear-gradient(135deg,var(--purple),var(--pink)); }
-        .filter-btn[data-filter="text"].active   { background: linear-gradient(135deg,var(--green),#06b6d4); }
-        .filter-btn[data-filter="blog"].active   { background: linear-gradient(135deg,var(--purple),#7c3aed); }
-
-        .filter-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-        }
-
-        .filter-btn[data-filter="all"]   .filter-dot { background: var(--cyan); }
-        .filter-btn[data-filter="video"] .filter-dot { background: var(--blue); }
-        .filter-btn[data-filter="image"] .filter-dot { background: var(--pink); }
-        .filter-btn[data-filter="text"]  .filter-dot { background: var(--green); }
-        .filter-btn[data-filter="blog"]  .filter-dot { background: var(--purple); }
-
-        /* ── Feed ────────────────────────────────────────────── */
-        .video-feed {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .feed-empty {
-            text-align: center;
-            color: var(--muted);
-            font-size: 14px;
-            padding: 40px 0;
-            letter-spacing: 0.05em;
-        }
-
-        /* ── Cards ───────────────────────────────────────────── */
-        .video-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            width: 100%;
-            max-width: 420px;
-            transition: border-color 0.25s, transform 0.25s, opacity 0.3s;
-        }
-
-        .video-card:hover {
-            border-color: var(--border-h);
-            transform: translateY(-2px);
-        }
-
-        .video-card.hidden { display: none; }
-
-        .card-accent { height: 3px; width: 100%; }
-        .card-accent.video { background: linear-gradient(90deg, var(--blue), var(--cyan)); }
-        .card-accent.image { background: linear-gradient(90deg, var(--purple), var(--pink)); }
-        .card-accent.text  { background: linear-gradient(90deg, var(--green), #06b6d4); }
-        .card-accent.blog  { background: linear-gradient(90deg, var(--purple), #7c3aed); }
-
-        .card-body { padding: 18px; }
-
-        .card-badge {
-            display: inline-block;
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .card-badge.video { background: rgba(0,123,255,0.13); color: var(--cyan); }
-        .card-badge.image { background: rgba(168,85,247,0.13); color: #c084fc; }
-        .card-badge.text  { background: rgba(16,185,129,0.13); color: #34d399; }
-        .card-badge.blog  { background: rgba(167,139,250,0.13); color: #a78bfa; }
-
-        .video-card h3 {
-            color: var(--text);
-            font-size: 16px;
-            font-weight: 700;
-            line-height: 1.4;
-            margin: 0 0 4px;
-        }
-
-        .video-card a { text-decoration: none; }
-        .video-card a:hover h3 { color: var(--blue); }
-
-        .yt-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9 / 16;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 14px;
-        }
-
-        .yt-container iframe {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .img-content {
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 14px;
-            display: block;
-        }
-
-        .text-content {
-            color: rgba(255,255,255,0.5);
-            line-height: 1.65;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        .read-more {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--blue);
-            text-decoration: none;
-        }
-
-        .read-more::after { content: '→'; transition: transform 0.2s; }
-        .read-more:hover::after { transform: translateX(3px); }
-
-        .fb-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            background: rgba(0,123,255,0.12);
-            border: 1px solid rgba(0,123,255,0.28);
-            color: var(--blue);
-            padding: 12px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 14px;
-            margin-top: 14px;
-            transition: background 0.2s;
-        }
-
-        .fb-btn:hover { background: rgba(0,123,255,0.22); }
-
-        .card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
-        }
-
-        .delete-btn {
-            background: transparent;
-            color: rgba(220,53,69,0.55);
-            border: 1px solid rgba(220,53,69,0.2);
-            padding: 5px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: var(--font);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            transition: all 0.2s;
-        }
-
-        .delete-btn:hover {
-            color: #e5334a;
-            border-color: rgba(220,53,69,0.5);
-            background: rgba(220,53,69,0.08);
-        }
-
-        @keyframes card-in {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .orb, .clock-bg-time, .hero-clock-live,
-            .scroll-line, .video-card { animation: none !important; }
-        }
-    </style>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Years — Clear health guidance for life after 50</title>
+<meta name="description" content="Health Years publishes plain-language, well-sourced articles and videos on staying healthy, active, and independent after 50.">
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-page="public">
 
-    <nav class="nav">
-        <div class="nav-logo">Mind <span>Hacks</span> Daily</div>
-        <div class="nav-time" id="navTime">00:00</div>
-    </nav>
+  <a href="#main" class="sr-only">Skip to main content</a>
 
-    <section class="hero">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-        <div class="orb orb-4"></div>
+  <!-- ============ HEADER ============ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <button class="hamburger-btn" aria-label="Open menu" aria-controls="siteNav" aria-expanded="false">☰</button>
 
-        <canvas id="heroCanvas"></canvas>
+      <a href="#top" class="brand">
+        <span class="brand-mark">HY</span>
+        <span class="brand-text">
+          <span class="brand-name">Health Years</span>
+          <span class="brand-tag">Clear guidance for living well</span>
+        </span>
+      </a>
 
-        <div class="clock-bg">
-            <div class="clock-bg-time" id="clockBg">00:00:00</div>
-        </div>
+      <div class="reading-tools">
+        <span class="reading-label">Text size</span>
+        <button data-size="normal" aria-label="Normal text size">A</button>
+        <button data-size="large" aria-label="Large text size">A</button>
+        <button data-size="xlarge" aria-label="Extra large text size">A</button>
+      </div>
+    </div>
+  </header>
 
-        <div class="hero-vignette"></div>
+  <!-- ============ SLIDE-IN NAV ============ -->
+  <div class="nav-overlay"></div>
+  <nav id="siteNav" class="site-nav" aria-hidden="true" aria-label="Main menu">
+    <button class="nav-close" aria-label="Close menu">✕</button>
+    <ul>
+      <li><a href="#posts">Blog Posts</a></li>
+      <li><a href="#videos">Videos</a></li>
+      <li><a href="#about">About Health Years</a></li>
+      <li><a href="#newsletter">Email Newsletter</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <p class="nav-footer">Are you the site editor? <a href="admin.html">Go to the admin panel</a></p>
+  </nav>
 
-        <div class="hero-content">
-            <div class="hero-eyebrow">Your daily dose of cognitive science</div>
-            <h1 class="hero-title">Mind Hacks Daily</h1>
-            <div class="hero-clock-live" id="clockLive">00:00:00</div>
-            <div class="hero-date" id="heroDate">—</div>
-            <div class="hero-welcome">
-                <p>Welcome to your daily brain upgrade.</p>
-                <p>Mind-bending hacks, insights & ideas — curated every day.</p>
-            </div>
-        </div>
-
-        <div class="scroll-cue">
-            <div class="scroll-line"></div>
-            scroll
-        </div>
+  <main id="main">
+    <!-- ============ HERO / SEARCH ============ -->
+    <section class="hero" id="top">
+      <div class="container">
+        <span class="section-eyebrow">Health Years</span>
+        <h1>Trusted, easy-to-read health guidance</h1>
+        <p class="lead">Practical articles and videos on staying healthy, active, and independent — written in plain language, with no jargon.</p>
+        <form class="search-form" role="search">
+          <label for="searchInput" class="sr-only">Search articles</label>
+          <input id="searchInput" type="search" placeholder="Search articles — try “blood pressure” or “balance”">
+          <button type="submit">Search</button>
+        </form>
+      </div>
     </section>
 
-    <section class="feed-section">
-        <div class="filter-bar" id="filterBar">
-            <button class="filter-btn active" data-filter="all">
-                <span class="filter-dot"></span> All
-            </button>
-            <button class="filter-btn" data-filter="video">
-                <span class="filter-dot"></span> Video
-            </button>
-            <button class="filter-btn" data-filter="image">
-                <span class="filter-dot"></span> Image
-            </button>
-            <button class="filter-btn" data-filter="text">
-                <span class="filter-dot"></span> Text
-            </button>
-            <button class="filter-btn" data-filter="blog">
-                <span class="filter-dot"></span> Blog
-            </button>
+    <!-- ============ EDITOR'S NOTE ============ -->
+    <section class="editor-note-section">
+      <div class="container">
+        <div class="editor-note-card">
+          <span class="editor-note-icon">✎</span>
+          <p id="editorNoteText">Every article here is written to be read in a few quiet minutes.</p>
         </div>
-
-        <div class="video-feed" id="videoFeed">
-            <div class="feed-empty">Loading content…</div>
-        </div>
+      </div>
     </section>
 
-    <script>
-    /* ── Particle Canvas ─────────────────────────────────── */
-    (function() {
-        const canvas = document.getElementById('heroCanvas');
-        const ctx    = canvas.getContext('2d');
-        let W, H, nodes;
+    <!-- ============ FEATURED ============ -->
+    <section class="featured-section" id="featured">
+      <div class="container">
+        <span class="section-eyebrow">Editor's pick</span>
+        <h2>Featured article</h2>
+        <div id="featuredPost"></div>
+      </div>
+    </section>
 
-        const COLORS = ['rgba(0,123,255,', 'rgba(168,85,247,', 'rgba(0,194,255,', 'rgba(236,72,153,'];
+    <!-- ============ POSTS ============ -->
+    <section class="posts-section" id="posts">
+      <div class="container">
+        <div class="posts-header">
+          <div>
+            <span class="section-eyebrow">Articles</span>
+            <h2>Latest from Health Years</h2>
+          </div>
+        </div>
+        <div id="topicFilters" class="topic-filters"></div>
+        <div id="postsGrid" class="posts-grid"></div>
+      </div>
+    </section>
 
-        function resize() {
-            W = canvas.width  = canvas.offsetWidth;
-            H = canvas.height = canvas.offsetHeight;
-        }
+    <!-- ============ VIDEOS ============ -->
+    <section class="videos-section" id="videos">
+      <div class="container">
+        <span class="section-eyebrow">Watch</span>
+        <h2>Videos</h2>
+        <div id="videosGrid" class="videos-grid"></div>
+      </div>
+    </section>
 
-        function makeNode() {
-            return {
-                x:  Math.random() * W,
-                y:  Math.random() * H,
-                vx: (Math.random() - 0.5) * 0.35,
-                vy: (Math.random() - 0.5) * 0.35,
-                r:  Math.random() * 1.8 + 0.6,
-                c:  COLORS[Math.floor(Math.random() * COLORS.length)]
-            };
-        }
+    <!-- ============ ABOUT ============ -->
+    <section class="about-section" id="about">
+      <div class="container about-grid">
+        <div>
+          <span class="section-eyebrow">About</span>
+          <h2>About Health Years</h2>
+          <p id="aboutText">Health Years publishes plain-language, well-sourced articles on staying healthy, active, and independent after 50.</p>
+        </div>
+        <div class="info-box">
+          <h3>Why we write this way</h3>
+          <p>Large, legible type. Short sentences. No pop-ups fighting for your attention. Just information you can trust and act on.</p>
+        </div>
+      </div>
+    </section>
 
-        function init() { resize(); nodes = Array.from({ length: 45 }, makeNode); }
+    <!-- ============ NEWSLETTER ============ -->
+    <section class="newsletter-section" id="newsletter">
+      <div class="container">
+        <div class="newsletter-card">
+          <span class="section-eyebrow">Stay in touch</span>
+          <h2>Get new articles by email</h2>
+          <p>We'll let you know whenever a new article or video is published. No spam, unsubscribe any time.</p>
+          <form id="newsletterForm" class="newsletter-form">
+            <label for="newsletterEmail" class="sr-only">Email address</label>
+            <input type="email" id="newsletterEmail" required placeholder="you@example.com">
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+          <div id="beehiivEmbedWrap" style="display:none"></div>
+          <p class="form-note">Your email is stored securely and only used for Health Years updates.</p>
+        </div>
+      </div>
+    </section>
 
-        function draw() {
-            ctx.clearRect(0, 0, W, H);
-            nodes.forEach(n => {
-                n.x += n.vx; n.y += n.vy;
-                if (n.x < 0 || n.x > W) n.vx *= -1;
-                if (n.y < 0 || n.y > H) n.vy *= -1;
-            });
+    <!-- ============ CONTACT ============ -->
+    <section class="contact-section" id="contact">
+      <div class="container">
+        <span class="section-eyebrow">Get in touch</span>
+        <h2>Contact us</h2>
+        <div class="info-box" style="max-width:480px">
+          <ul class="contact-list">
+            <li>✉️ <a id="contactEmail" href="mailto:hello@healthyears.example">hello@healthyears.example</a></li>
+            <li>💬 We read every message and reply within a few days.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
 
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const d  = Math.sqrt(dx*dx + dy*dy);
-                    if (d < 150) {
-                        const a = (1 - d/150) * 0.3;
-                        ctx.beginPath();
-                        ctx.strokeStyle = `${nodes[i].c}${a})`;
-                        ctx.lineWidth   = 0.7;
-                        ctx.moveTo(nodes[i].x, nodes[i].y);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        ctx.stroke();
-                    }
-                }
-                ctx.beginPath();
-                ctx.arc(nodes[i].x, nodes[i].y, nodes[i].r, 0, Math.PI*2);
-                ctx.fillStyle = `${nodes[i].c}0.8)`;
-                ctx.fill();
-            }
-            requestAnimationFrame(draw);
-        }
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <strong style="font-size:1.2rem">Health Years</strong>
+        <p style="max-width:320px;color:rgba(255,255,255,.75)">Clear, trustworthy health guidance for life after 50.</p>
+      </div>
+      <div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <a href="#posts">Blog Posts</a>
+          <a href="#videos">Videos</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+          <a href="admin.html">Admin panel</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-note">© <span id="year"></span> Health Years. All rights reserved.</div>
+  </footer>
 
-        window.addEventListener('resize', resize);
-        init(); draw();
-    })();
+  <!-- ============ POST MODAL ============ -->
+  <div id="postModal" class="post-modal" aria-hidden="true"></div>
 
-    /* ── Clock ───────────────────────────────────────────── */
-    const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const pad    = n => String(n).padStart(2,'0');
-
-    function tick() {
-        const now = new Date();
-        const h = pad(now.getHours()), m = pad(now.getMinutes()), s = pad(now.getSeconds());
-        const t = `${h}:${m}:${s}`;
-        document.getElementById('clockLive').textContent = t;
-        document.getElementById('clockBg').textContent   = t;
-        document.getElementById('navTime').textContent   = `${h}:${m}`;
-        document.getElementById('heroDate').textContent  =
-            `${DAYS[now.getDay()]} · ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-    }
-    tick();
-    setInterval(tick, 1000);
-
-    /* ── Firebase ────────────────────────────────────────── */
-    const firebaseConfig = {
-        apiKey:            "YOUR_API_KEY",
-        authDomain:        "mind-hacks-daily.firebaseapp.com",
-        projectId:         "mind-hacks-daily",
-        storageBucket:     "mind-hacks-daily.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId:             "YOUR_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    function getEmbedUrl(url) {
-        if (!url) return '';
-        if (url.includes('shorts/'))   return url.replace('shorts/', 'embed/');
-        if (url.includes('watch?v='))  return url.replace('watch?v=', 'embed/');
-        if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
-        return url;
-    }
-
-    async function deletePost(id) {
-        if (confirm('Delete this post?')) {
-            await db.collection('videos').doc(id).delete();
-        }
-    }
-
-    /* ── Filter Logic ────────────────────────────────────── */
-    let activeFilter = 'all';
-
-    document.getElementById('filterBar').addEventListener('click', e => {
-        const btn = e.target.closest('.filter-btn');
-        if (!btn) return;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeFilter = btn.dataset.filter;
-        applyFilter();
-    });
-
-    function applyFilter() {
-        document.querySelectorAll('.video-card').forEach(card => {
-            const match = activeFilter === 'all' || card.dataset.type === activeFilter;
-            card.classList.toggle('hidden', !match);
-        });
-
-        const feed    = document.getElementById('videoFeed');
-        const visible = feed.querySelectorAll('.video-card:not(.hidden)');
-        let empty     = feed.querySelector('.feed-empty');
-
-        if (visible.length === 0) {
-            if (!empty) {
-                empty = document.createElement('div');
-                empty.className = 'feed-empty';
-                feed.appendChild(empty);
-            }
-            empty.textContent = `No ${activeFilter === 'all' ? '' : activeFilter + ' '}posts yet.`;
-        } else if (empty) {
-            empty.remove();
-        }
-    }
-
-    /* ── Firestore Listener ──────────────────────────────── */
-    db.collection('videos').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-        const feed = document.getElementById('videoFeed');
-        feed.innerHTML = '';
-
-        if (snapshot.empty) {
-            feed.innerHTML = '<div class="feed-empty">No posts yet. Publish your first hack.</div>';
-            return;
-        }
-
-        let delay = 0;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const type = data.type || 'text';
-
-            let mediaHtml = '';
-            if (type === 'video') {
-                const isFB = data.url && (data.url.includes('facebook.com') || data.url.includes('fb.watch'));
-                mediaHtml = isFB
-                    ? `<a href="${data.url}" target="_blank" class="fb-btn">▶ Watch on Facebook</a>`
-                    : `<div class="yt-container"><iframe src="${getEmbedUrl(data.url)}" allowfullscreen loading="lazy"></iframe></div>`;
-            } else if (type === 'image') {
-                mediaHtml = `<img src="${data.imageUrl}" class="img-content" alt="${data.title}" loading="lazy">`;
-            } else {
-                const preview = (data.content || '').substring(0, 110).trimEnd();
-                mediaHtml = `
-                    <p class="text-content">${preview}…</p>
-                    <a href="post.html?id=${doc.id}" class="read-more">Read full post</a>
-                `;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'video-card';
-            card.dataset.type = type;
-            card.style.animation = `card-in 0.4s ease ${delay}ms both`;
-            delay += 60;
-
-            card.innerHTML = `
-                <div class="card-accent ${type}"></div>
-                <div class="card-body">
-                    <span class="card-badge ${type}">${type}</span>
-                    <a href="post.html?id=${doc.id}">
-                        <h3>${data.title}</h3>
-                    </a>
-                    ${mediaHtml}
-                    <div class="card-footer">
-                        <button class="delete-btn" onclick="deletePost('${doc.id}')">Delete</button>
-                    </div>
-                </div>
-            `;
-            feed.appendChild(card);
-        });
-
-        applyFilter();
-    });
-    </script>
+  <script src="app.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
