@@ -1,181 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Health Years — Clear health guidance for life after 50</title>
-<meta name="description" content="Health Years publishes plain-language, well-sourced articles and videos on staying healthy, active, and independent after 50.">
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
 </head>
-<body data-page="public">
-
-  <a href="#main" class="sr-only">Skip to main content</a>
-
-  <!-- ============ HEADER ============ -->
-  <header class="site-header">
-    <div class="header-inner">
-      <button class="hamburger-btn" aria-label="Open menu" aria-controls="siteNav" aria-expanded="false">☰</button>
-
-      <a href="#top" class="brand">
-        <span class="brand-mark">HY</span>
-        <span class="brand-text">
-          <span class="brand-name">Health Years</span>
-          <span class="brand-tag">Clear guidance for living well</span>
-        </span>
-      </a>
-
-      <div class="reading-tools">
-        <span class="reading-label">Text size</span>
-        <button data-size="normal" aria-label="Normal text size">A</button>
-        <button data-size="large" aria-label="Large text size">A</button>
-        <button data-size="xlarge" aria-label="Extra large text size">A</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ============ SLIDE-IN NAV ============ -->
-  <div class="nav-overlay"></div>
-  <nav id="siteNav" class="site-nav" aria-hidden="true" aria-label="Main menu">
-    <button class="nav-close" aria-label="Close menu">✕</button>
-    <ul>
-      <li><a href="#posts">Blog Posts</a></li>
-      <li><a href="#videos">Videos</a></li>
-      <li><a href="#about">About Health Years</a></li>
-      <li><a href="#newsletter">Email Newsletter</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-    <p class="nav-footer">Are you the site editor? <a href="admin.html">Go to the admin panel</a></p>
-  </nav>
-
-  <main id="main">
-    <!-- ============ HERO / SEARCH ============ -->
-    <section class="hero" id="top">
-      <div class="container">
-        <span class="section-eyebrow">Health Years</span>
-        <h1>Trusted, easy-to-read health guidance</h1>
-        <p class="lead">Practical articles and videos on staying healthy, active, and independent — written in plain language, with no jargon.</p>
-        <form class="search-form" role="search">
-          <label for="searchInput" class="sr-only">Search articles</label>
-          <input id="searchInput" type="search" placeholder="Search articles — try “blood pressure” or “balance”">
-          <button type="submit">Search</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- ============ EDITOR'S NOTE ============ -->
-    <section class="editor-note-section">
-      <div class="container">
-        <div class="editor-note-card">
-          <span class="editor-note-icon">✎</span>
-          <p id="editorNoteText">Every article here is written to be read in a few quiet minutes.</p>
+<body>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <nav class="nav-overlay" id="navOverlay" aria-hidden="true">
+        <div class="nav-content">
+            <button class="nav-close" id="navClose" aria-label="Close menu">&times;</button>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#featured">Featured Posts</a></li>
+                <li><a href="index.html#latest">Latest Posts</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="admin.html">Admin Login</a></li>
+            </ul>
         </div>
-      </div>
-    </section>
-
-    <!-- ============ FEATURED ============ -->
-    <section class="featured-section" id="featured">
-      <div class="container">
-        <span class="section-eyebrow">Editor's pick</span>
-        <h2>Featured article</h2>
-        <div id="featuredPost"></div>
-      </div>
-    </section>
-
-    <!-- ============ POSTS ============ -->
-    <section class="posts-section" id="posts">
-      <div class="container">
-        <div class="posts-header">
-          <div>
-            <span class="section-eyebrow">Articles</span>
-            <h2>Latest from Health Years</h2>
-          </div>
+    </nav>
+    
+    <article class="post-full" id="postContainer">
+        <div class="container">
+            <div id="postContent">
+                <p class="loading">Loading article...</p>
+            </div>
+            
+            <!-- Engagement -->
+            <div class="post-actions">
+                <button class="like-btn" id="likeBtn" aria-label="Like this post">
+                    <span class="like-icon">&hearts;</span>
+                    <span id="likeCount">0</span> Likes
+                </button>
+                <div class="share-buttons">
+                    <button onclick="sharePost('facebook')">Share on Facebook</button>
+                    <button onclick="sharePost('twitter')">Share on X</button>
+                    <button onclick="sharePost('email')">Email</button>
+                </div>
+            </div>
+            
+            <!-- Reviews -->
+            <section class="reviews-section">
+                <h3>Reader Reviews</h3>
+                <div id="reviewsList">
+                    <p class="loading">Loading reviews...</p>
+                </div>
+                <form id="reviewForm" class="review-form">
+                    <h4>Write a Review</h4>
+                    <div class="form-group">
+                        <label for="reviewerName">Your Name</label>
+                        <input type="text" id="reviewerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewRating">Rating</label>
+                        <select id="reviewRating">
+                            <option value="5">&#9733;&#9733;&#9733;&#9733;&#9733; Excellent</option>
+                            <option value="4">&#9733;&#9733;&#9733;&#9733; Good</option>
+                            <option value="3">&#9733;&#9733;&#9733; Average</option>
+                            <option value="2">&#9733;&#9733; Poor</option>
+                            <option value="1">&#9733; Very Poor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewText">Your Review</label>
+                        <textarea id="reviewText" rows="4" required></textarea>
+                    </div>
+                    <button type="submit">Submit Review</button>
+                </form>
+            </section>
+            
+            <!-- Comments -->
+            <section class="comments-section">
+                <h3>Comments</h3>
+                <div id="commentsList">
+                    <p class="loading">Loading comments...</p>
+                </div>
+                <form id="commentForm" class="comment-form">
+                    <h4>Leave a Comment</h4>
+                    <div class="form-group">
+                        <label for="commenterName">Your Name</label>
+                        <input type="text" id="commenterName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentText">Comment</label>
+                        <textarea id="commentText" rows="4" required></textarea>
+                    </div>
+                    <button type="submit">Post Comment</button>
+                </form>
+            </section>
         </div>
-        <div id="topicFilters" class="topic-filters"></div>
-        <div id="postsGrid" class="posts-grid"></div>
-      </div>
-    </section>
-
-    <!-- ============ VIDEOS ============ -->
-    <section class="videos-section" id="videos">
-      <div class="container">
-        <span class="section-eyebrow">Watch</span>
-        <h2>Videos</h2>
-        <div id="videosGrid" class="videos-grid"></div>
-      </div>
-    </section>
-
-    <!-- ============ ABOUT ============ -->
-    <section class="about-section" id="about">
-      <div class="container about-grid">
-        <div>
-          <span class="section-eyebrow">About</span>
-          <h2>About Health Years</h2>
-          <p id="aboutText">Health Years publishes plain-language, well-sourced articles on staying healthy, active, and independent after 50.</p>
+    </article>
+    
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2026 Finance & Health Blog. All rights reserved.</p>
         </div>
-        <div class="info-box">
-          <h3>Why we write this way</h3>
-          <p>Large, legible type. Short sentences. No pop-ups fighting for your attention. Just information you can trust and act on.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ NEWSLETTER ============ -->
-    <section class="newsletter-section" id="newsletter">
-      <div class="container">
-        <div class="newsletter-card">
-          <span class="section-eyebrow">Stay in touch</span>
-          <h2>Get new articles by email</h2>
-          <p>We'll let you know whenever a new article or video is published. No spam, unsubscribe any time.</p>
-          <form id="newsletterForm" class="newsletter-form">
-            <label for="newsletterEmail" class="sr-only">Email address</label>
-            <input type="email" id="newsletterEmail" required placeholder="you@example.com">
-            <button type="submit" class="btn btn-primary">Subscribe</button>
-          </form>
-          <div id="beehiivEmbedWrap" style="display:none"></div>
-          <p class="form-note">Your email is stored securely and only used for Health Years updates.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ CONTACT ============ -->
-    <section class="contact-section" id="contact">
-      <div class="container">
-        <span class="section-eyebrow">Get in touch</span>
-        <h2>Contact us</h2>
-        <div class="info-box" style="max-width:480px">
-          <ul class="contact-list">
-            <li>✉️ <a id="contactEmail" href="mailto:hello@healthyears.example">hello@healthyears.example</a></li>
-            <li>💬 We read every message and reply within a few days.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ============ FOOTER ============ -->
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <strong style="font-size:1.2rem">Health Years</strong>
-        <p style="max-width:320px;color:rgba(255,255,255,.75)">Clear, trustworthy health guidance for life after 50.</p>
-      </div>
-      <div>
-        <div style="display:flex;flex-direction:column;gap:.4rem">
-          <a href="#posts">Blog Posts</a>
-          <a href="#videos">Videos</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-          <a href="admin.html">Admin panel</a>
-        </div>
-      </div>
-    </div>
-    <div class="container footer-note">© <span id="year"></span> Health Years. All rights reserved.</div>
-  </footer>
-
-  <!-- ============ POST MODAL ============ -->
-  <div id="postModal" class="post-modal" aria-hidden="true"></div>
-
-  <script src="app.js"></script>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+    </footer>
+    
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/post.js"></script>
 </body>
 </html>
