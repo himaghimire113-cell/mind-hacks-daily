@@ -1,150 +1,70 @@
 # Vertex Theory
 
-A multi-file, vanilla HTML/CSS/JS blog, deployed on Vercel, backed by
-Firebase. Built to be managed entirely from a phone — no build step, no
-desktop tooling required to run or deploy it.
+Mobile-first static blog using vanilla HTML/CSS/JS + Firebase Firestore/Auth/Analytics. No npm, no build step.
 
-**Design system:** Editorial Swiss Modernism — warm paper background, near-black
-ink, one accent (vertex blue `#1F3FD6`). Display serif is Libre Bodoni, body
-is Public Sans, meta/tags/timestamps use IBM Plex Mono. Chosen via the
-`ui-ux-pro-max` skill's `--design-system` search for an editorial/publication
-product.
+## Files
+- `index.html` public site shell
+- `styles.css` design system and responsive layout
+- `app.js` public Firestore data loading, query-param routing, newsletter signup, Motion animation-ready frontend
+- `admin.html` Firebase Auth admin UI
+- `admin.js` post editor, appearance and subscribers
+- `firebase-config.js` Firebase web config
+- `firestore.rules` security rules
+- `vercel.json` simple production headers
 
----
+## Firebase setup
+1. Create a Firebase project.
+2. Add a Web App and copy its config into `firebase-config.js`.
+3. Enable Firestore Database.
+4. Enable Authentication > Sign-in method > Email/Password.
+5. Create your admin user in Authentication > Users.
+6. Replace `YOUR_ADMIN_EMAIL` in both `admin.js` and `firestore.rules` with that exact admin email.
+7. Paste `firestore.rules` into Firestore Database > Rules and Publish.
+8. Create Firestore document `settings/site` with:
+   - `siteTitle`: `Vertex Theory`
+   - `description`: `Ideas worth thinking about. Stories worth remembering.`
+   - `accent`: `#c64b2d`
+   - `accent2`: `#243d35`
+9. Create a `posts` collection by adding your first document through the admin panel after signing in.
+10. Add Firebase Analytics by ensuring the config includes `measurementId`.
 
-## 1. File structure
+## URL routing
+- Home: `/?page=home`
+- Article: `/?post=your-slug`
+- Category: `/?category=Finance`
+- About: `/?page=about`
+- Privacy: `/?page=privacy`
+- Admin: `/admin.html`
 
-```
-vertex-theory/
-├── index.html          Homepage — post grid, featured post, newsletter
-├── post.html            Single post — reads ?post=slug
-├── about.html            About page (has real default copy already)
-├── admin.html            Admin panel (login, editor, appearance, subscribers)
-├── style.css              Shared public-site styles (design tokens live here)
-├── admin.css              Admin-only chrome (dark UI, tabs, table)
-├── firebase-config.js     ← YOU EDIT THIS: paste your Firebase config
-├── utils.js               Shared helpers (slugify, Imgur converter, dates…)
-├── partials.js            Injects the shared header/footer into every page
-├── main.js                Homepage logic
-├── post.js                Post page logic
-├── about.js               About page logic
-├── admin.js                Admin panel logic
-├── favicon.svg
-├── firestore.rules         Paste into Firebase Console → Firestore → Rules
-└── STARTER-CONTENT.md      3 ready-to-paste sample posts + About copy
-```
+`URLSearchParams` ignores Facebook's `fbclid` automatically because the app only reads `post`, `category`, and `page`.
 
-Everything is flat — no nested folders beyond this one directory — so it
-works cleanly with mobile Git clients (Working Copy, Git2Go, etc.) and the
-GitHub mobile app's file browser.
+## Motion
+The public site is deliberately buildless. Motion can be loaded from its ESM CDN when you want richer animation:
+`https://cdn.jsdelivr.net/npm/motion@latest/+esm`
+This keeps the iPhone/Vercel workflow free of npm and bundling.
 
----
+## Important social preview limitation
+A purely static browser app cannot fetch a different Firestore post and rewrite Open Graph tags before Facebook's crawler requests the HTML. The browser updates `og:title`, `og:description`, and `og:image` after loading, which helps normal browsers, but Facebook link previews may use the generic `index.html` metadata.
 
-## 2. Firebase setup (all done from a phone browser at console.firebase.google.com)
+For guaranteed per-post Facebook previews, add a tiny Vercel serverless/edge endpoint that reads the post and returns HTML metadata. That is the one optional step that moves beyond a strictly static site.
 
-1. **Create a project**: Firebase Console → Add project → name it (e.g.
-   "vertex-theory") → skip Google Analytics or enable it, your choice.
-2. **Add a Web app**: Project overview → the `</>` icon → register app
-   (no need to check "Firebase Hosting", you're using Vercel) → copy the
-   `firebaseConfig` object it shows you.
-3. **Paste that config** into `firebase-config.js` in this project, replacing
-   the `PASTE_...` placeholders.
-4. **Enable Firestore**: Build → Firestore Database → Create database →
-   start in **production mode** → pick a region close to your audience.
-5. **Publish security rules**: Firestore Database → Rules tab → replace
-   everything with the contents of `firestore.rules` in this project →
-   Publish.
-6. **Enable Authentication**: Build → Authentication → Get started → enable
-   the **Email/Password** provider.
-7. **Create your admin account**: Authentication → Users → Add user → enter
-   the email/password you'll use to log into `/admin.html`. There's no
-   public sign-up page — this is the only way an account gets created.
-8. **(Optional) Enable Analytics/GA4**: if you enabled Analytics in step 1,
-   grab the `measurementId` (starts with `G-`) from Project settings and
-   paste it into `firebase-config.js` too.
+## Likes, comments and sharing
 
-Firestore is force-initialized with `experimentalForceLongPolling: true` in
-`firebase-config.js` — this keeps it working inside restricted in-app
-WebViews (Facebook, Instagram, LinkedIn browsers) that otherwise silently
-fail to open a normal streaming connection.
+The public article page now includes:
+- one-like-per-anonymous-visitor-per-post using Firebase Anonymous Authentication
+- moderated comments stored under `posts/{postId}/comments`
+- share buttons for native mobile sharing, Facebook, WhatsApp, X and copy link
+- live Firestore counts for likes, comments and shares
+- client-side cooldowns plus Firestore field validation for basic abuse protection
 
----
+### Required Firebase change
+Enable **Authentication → Sign-in method → Anonymous**. Anonymous Authentication is used so readers can receive a stable Firebase UID without creating an account. This UID is used to prevent a visitor from repeatedly liking the same post.
 
-## 3. Deploy from mobile (GitHub + Vercel)
+### Admin moderation
+Open `/admin.html`, sign in with the configured administrator account, then open **Comments**. Approve a comment to make it public or delete it permanently.
 
-1. **Create a new GitHub repo** from the GitHub mobile app or github.com in
-   Safari/Chrome (e.g. `vertex-theory`).
-2. **Get the files into the repo.** From a mobile Git client (Working Copy
-   on iOS, or GitHub's own "Add file → Upload files" web UI works fine from
-   a phone browser too):
-   - Clone/create the repo.
-   - Copy every file from this `vertex-theory/` folder into the repo root
-     (keep it flat — don't nest it inside another folder).
-   - Commit and push.
-3. **Connect Vercel**: go to vercel.com in your mobile browser → Add New →
-   Project → Import your GitHub repo (authorize Vercel's GitHub App if it's
-   your first time — one-tap OAuth flow).
-4. **Framework preset**: choose **"Other"** (this is a static site, no
-   framework, no build command needed). Leave Build Command and Output
-   Directory empty/default — Vercel will just serve the files as-is.
-5. **Deploy.** Vercel gives you a `*.vercel.app` URL immediately. Add a
-   custom domain later from Project → Settings → Domains, same mobile
-   dashboard.
-6. **Every future push to your main branch auto-deploys** — no redeploy step
-   needed for content changes, since posts/settings live in Firestore, not
-   in the repo.
+### Firestore rules
+Paste the updated `firestore.rules` into Firebase Console → Firestore Database → Rules. Replace `YOUR_ADMIN_EMAIL` with your administrator email before publishing.
 
-### Steps that specifically need a desktop (flagging as requested)
-
-Honestly — none of them do. Everything above (repo creation, file upload,
-Firebase Console configuration, Vercel import/deploy, and the admin panel
-itself) works in a mobile browser or a mobile Git client. The one place you
-might *prefer* a desktop, purely for comfort, is writing long post bodies in
-the Admin → Post Editor textarea — typing HTML on a phone keyboard is
-tedious. `STARTER-CONTENT.md` in this repo has three full sample posts
-pre-written so you can paste instead of type to get started, and you can
-always draft long posts in Notes/Google Docs and paste the HTML in.
-
----
-
-## 4. Seeding content
-
-Open `/admin.html`, sign in, go to **Post Editor → + New post**, and paste in
-the fields from `STARTER-CONTENT.md`. Set Status to **Published** and Save.
-Do this for all three, mark one as **Featured**, and your homepage goes from
-an empty state to a real-looking blog in about five minutes.
-
-The About page already ships with real default copy (see `about.html`), so
-you don't need to touch Appearance → About unless you want to change it —
-when you do, it overrides the default without a redeploy.
-
----
-
-## 5. Routing notes
-
-- Routing is query-param based (`/?post=slug-here`, `/?category=money`), not
-  hash-based (`#/post/...`) — hash fragments get stripped by the Facebook
-  in-app browser and some other in-app WebViews, which breaks shared links.
-  Every param is read with `URLSearchParams`, which safely ignores whatever
-  extra tracking params get appended (`fbclid`, `utm_*`, `igshid`, etc.).
-- **Known limitation — social link previews:** because this is a
-  client-rendered static site, the Open Graph tags on `post.html` are
-  updated by JavaScript *after* the page loads. Real browsers see this fine,
-  but most social crawlers (notably Facebook's) don't execute JavaScript, so
-  a freshly shared post link may show the generic site preview instead of
-  that post's title/image until the crawler happens to pick up a cached
-  render. If per-post link previews become important, the fix is a small
-  Vercel serverless function (a single file in an `/api` folder, no build
-  step) that fetches the post from Firestore server-side and returns
-  pre-rendered HTML with the right `<meta>` tags for known crawler user
-  agents — happy to build that as a follow-up if you want it.
-
----
-
-## 6. Imgur images
-
-Paste either a share link (`imgur.com/abc123`) or a direct link
-(`i.imgur.com/abc123.jpg`) into the Cover Image field or an `<img src="...">`
-in the post body — both the editor (on save) and the post page (on render,
-as a safety net) auto-convert share links to direct image URLs, so they
-render as actual images instead of a broken link icon.
+### Important abuse note
+The site includes practical basic protection, not a full anti-spam service. A determined bot can still abuse public endpoints. For a larger audience, add App Check and/or a server-side moderation/rate-limit layer.

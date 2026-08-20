@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4ef">
+  <meta name="description" content="Vertex Theory explores psychology, money, health, culture and the small ideas that make everyday life make more sense.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Vertex Theory">
+  <meta property="og:description" content="Ideas worth thinking about. Stories worth remembering.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=85">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Vertex Theory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="utility"><span id="todayLabel"></span><span>Independent ideas, human stories & useful knowledge</span></div>
+    <div class="nav-wrap">
+      <a class="brand" href="/?page=home" aria-label="Vertex Theory home"><span class="brand-mark">V</span><span>VERTEX <i>THEORY</i></span></a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+      <nav id="mainNav"></nav>
+    </div>
+    <div class="mobile-nav" id="mobileNav"></div>
+  </header>
+
+  <main id="app" class="page-shell"><div class="loading">Loading the latest thinking…</div></main>
+
+  <footer class="footer">
+    <div><strong>VERTEX THEORY</strong><p>Ideas worth thinking about. Stories worth remembering.</p></div>
+    <div class="footer-links"><a href="/?page=about">About</a><a href="/?page=privacy">Privacy</a><a href="/admin.html">Admin</a></div>
+    <small>© <span id="year"></span> Vertex Theory. Built for curious humans.</small>
+  </footer>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
