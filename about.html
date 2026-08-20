@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>About — Vertex Theory</title>
+  <meta name="description" content="Why Vertex Theory exists, who writes it, and what it's actually trying to do." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Vertex Theory" />
+  <meta property="og:title" content="About — Vertex Theory" />
+  <meta property="og:description" content="Why Vertex Theory exists, who writes it, and what it's actually trying to do." />
+  <meta property="og:image" content="/og-default.png" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main">
+    <div class="wrap-narrow">
+      <div class="article-header" style="padding-top:64px;">
+        <span class="eyebrow">About</span>
+        <h1 style="margin-top:12px;">A blog about the point where a few things intersect.</h1>
+      </div>
+
+      <div class="article-body" id="about-body">
+        <p>I started keeping these notes on my phone in 2019, mostly on a commute I didn't enjoy, mostly because I was tired of reading financial advice written for people who already had $10,000 spare and an advisor named Chad.</p>
+
+        <p><strong>Vertex Theory</strong> is named after the point where a few different lines cross. For me that's money, technology, and the small decisions that quietly compound into a life — good or bad, whether you're paying attention or not. I write about all three, usually because I'm trying to work something out for myself first and the writing is how I check my own thinking.</p>
+
+        <p>A few things I believe, for context:</p>
+        <ul>
+          <li>Most financial advice is written for people who don't actually need it.</li>
+          <li>The best technology is the kind you eventually stop noticing.</li>
+          <li>Compounding is the only reliable magic trick in personal finance, and it's boring on purpose — that's kind of the whole trick.</li>
+        </ul>
+
+        <p>I'm not a licensed advisor, a former hedge fund analyst, or a productivity guru with a 5 a.m. routine you should copy. I'm someone who reads more than is probably healthy, tries things on myself before writing about them, and writes it down so I don't have to relearn the same lesson eighteen months later.</p>
+
+        <blockquote>Nothing on this site is financial, legal, or medical advice. It's one person's notes, published in public, made as carefully as I know how.</blockquote>
+
+        <h2>How this site is built</h2>
+        <p>Vertex Theory runs on plain HTML, CSS, and JavaScript, with Firebase handling the database, login, and analytics underneath. There's no framework, no build step, and no server to maintain — every post you're reading came out of an admin panel on a phone, not a desktop. If that sounds like a strange way to build something, it mostly is, and I'd do a few things differently next time.</p>
+
+        <h2>Get in touch</h2>
+        <p>If something here is wrong, outdated, or just badly explained, tell me. I'd rather fix a post than defend it. You can reach me at <a href="mailto:hello@vertextheory.com">hello@vertextheory.com</a>, or subscribe below and reply to any email — it goes to a real inbox.</p>
+      </div>
+
+      <div class="newsletter" style="margin-bottom:96px;">
+        <div>
+          <h2>Subscribe</h2>
+          <p>One email when something new goes up. No drip sequence, unsubscribe in one tap.</p>
+        </div>
+        <div>
+          <form id="newsletter-form" class="newsletter-form" novalidate>
+            <label class="visually-hidden" for="newsletter-email">Email address</label>
+            <input type="email" id="newsletter-email" name="email" placeholder="you@email.com" required autocomplete="email" />
+            <button type="submit" class="btn btn-accent" id="newsletter-submit">Subscribe</button>
+          </form>
+          <p class="form-status" id="newsletter-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script type="module" src="/about.js"></script>
+</body>
+</html>
