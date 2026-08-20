@@ -30,6 +30,25 @@
 </head>
 <body>
 
+<div id="vx-error-banner"><b>Something went wrong</b><span id="vx-error-msg"></span><button onclick="document.getElementById('vx-error-banner').classList.remove('show')" aria-label="Dismiss">×</button></div>
+<script>
+(function(){
+  function show(msg){
+    var b=document.getElementById('vx-error-banner'), m=document.getElementById('vx-error-msg');
+    if(!b||!m) return;
+    m.textContent = msg;
+    b.classList.add('show');
+  }
+  window.addEventListener('error', function(e){
+    show((e.message||'Script error')+(e.filename?' — '+e.filename.split('/').pop()+':'+e.lineno:''));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r=e.reason;
+    show('Unhandled: '+(r&&r.message?r.message:String(r)));
+  });
+})();
+</script>
+
 <header class="site-header" id="site-header"></header>
 
 <main id="main-content">
