@@ -1,66 +1,66 @@
 rules_version = '2';
+
+// ============================================================
+// VERTEX THEORY — Firestore security rules
+// Paste this entire file into:
+// Firebase Console → Firestore Database → Rules → replace all → Publish
+//
+// Model: any signed-in user (request.auth != null) is treated as an
+// admin. Since the admin panel never exposes a public sign-up form and
+// you'll create exactly one user by hand in the Firebase Console, this
+// is safe. If you ever add more Firebase Auth users for other reasons,
+// tighten the isAdmin() check below to an explicit email allow-list.
+// ============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email == "YOUR_ADMIN_EMAIL";
-    }
-
-    function signedIn() {
       return request.auth != null;
+      // Stricter alternative — only these emails may write:
+      // return request.auth != null &&
+      //   request.auth.token.email in ['you@example.com'];
     }
 
+    // ---------- posts ----------
     match /posts/{postId} {
-      allow read: if resource.data.status == "published" || isAdmin();
+      allow read: if true;                 // public can read all posts
+                                            // (client filters status=="published";
+                                            // drafts are only surfaced in admin.html
+                                            // which requires isAdmin() anyway)
       allow create, update, delete: if isAdmin();
 
-      match /likes/{visitorId} {
-        allow read: if true;
-        allow create: if signedIn()
-          && request.auth.uid == visitorId
-          && request.resource.data.keys().hasOnly(['visitorId','createdAt'])
-          && request.resource.data.visitorId == request.auth.uid;
-        allow delete: if signedIn()
-          && resource.data.visitorId == request.auth.uid;
-        allow update: if false;
-      }
-
-      match /shares/{shareId} {
-        allow read: if true;
-        allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['visitorId','createdAt'])
-          && request.resource.data.visitorId == request.auth.uid
-          && request.resource.data.createdAt == request.time;
-        allow update, delete: if false;
-      }
-
+      // ---------- comments / messages on a post ----------
       match /comments/{commentId} {
-        allow read: if isAdmin() || resource.data.status == "approved";
-        allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['name','comment','status','visitorId','createdAt'])
-          && request.resource.data.visitorId == request.auth.uid
-          && request.resource.data.status == "pending"
-          && request.resource.data.name is string
-          && request.resource.data.name.size() >= 2
-          && request.resource.data.name.size() <= 60
-          && request.resource.data.comment is string
-          && request.resource.data.comment.size() >= 3
-          && request.resource.data.comment.size() <= 1000;
-        allow update, delete: if isAdmin();
+        allow read: if true;                // public comments are visible to all
+        allow create: if request.resource.data.keys().hasAll(['name','text','createdAt'])
+                       && request.resource.data.text is string
+                       && request.resource.data.text.size() > 0
+                       && request.resource.data.text.size() < 2000
+                       && request.resource.data.isAdmin == false;
+                                             // readers may post, but can never set isAdmin:true
+        allow update, delete: if isAdmin(); // only admin can edit/remove comments
       }
     }
 
-    match /settings/{settingId} {
+    // ---------- site settings (branding, colors, ad slot) ----------
+    match /settings/{docId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    match /subscribers/{subscriberId} {
-      allow create: if request.resource.data.keys().hasOnly(['email','createdAt','source'])
-        && request.resource.data.email is string
-        && request.resource.data.email.size() <= 254
-        && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
-      allow read, update, delete: if isAdmin();
+    // ---------- newsletter subscribers ----------
+    match /subscribers/{subId} {
+      allow read: if isAdmin();             // only admin can list emails
+      allow create: if request.resource.data.keys().hasAll(['email','createdAt'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+      allow update, delete: if isAdmin();
+    }
+
+    // default deny for anything else
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

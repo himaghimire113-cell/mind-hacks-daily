@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About · Vertex Theory</title>
+<meta name="description" content="About Vertex Theory.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 22'%3E%3Cpath fill='none' stroke='%2314151A' stroke-width='2.4' stroke-linecap='round' d='M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20'/%3E%3Ccircle cx='15' cy='3' r='2.8' fill='%23D4A537'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="site-header" id="site-header"></header>
+
+<main class="wrap section" id="about-content">
+  <div class="prose">
+    <span class="eyebrow" id="about-eyebrow">About</span>
+    <h1 id="about-title">The moment everything changed</h1>
+    <p>A parabola has exactly one vertex — the single point where it stops falling and starts rising, or stops rising and starts falling. Every story we publish is told from that point: the decision, the discovery, the sentence someone said that changed the rest of the afternoon.</p>
+    <p>We're a small, independent editorial team. No wire-service filler, no algorithm-bait — just stories worth the few minutes they take to read.</p>
+    <p>Have a story to tell, a correction to flag, or a partnership to discuss? Leave a comment on any post and our editors reply from there — every message reaches a real person.</p>
+  </div>
+
+  <div class="newsletter" style="margin-top:40px">
+    <h3>Get the next turning point in your inbox</h3>
+    <p>One email, whenever there's a story worth your time.</p>
+    <form data-newsletter-form class="newsletter-form">
+      <input type="text" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px" aria-hidden="true">
+      <input type="email" required placeholder="you@email.com" aria-label="Email address">
+      <button type="submit" class="btn btn-gold">Subscribe</button>
+    </form>
+  </div>
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+
+<script type="module">
+  import { renderHeader, renderFooter, wireNewsletterForms } from "./app.js";
+  (async () => {
+    const settings = await renderHeader("about");
+    document.getElementById("about-title").textContent = settings.tagline || "The moment everything changed";
+    wireNewsletterForms();
+    renderFooter(settings);
+  })();
+</script>
+</body>
+</html>

@@ -1,41 +1,71 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f6f4ef">
-  <meta name="description" content="Vertex Theory explores psychology, money, health, culture and the small ideas that make everyday life make more sense.">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Vertex Theory">
-  <meta property="og:description" content="Ideas worth thinking about. Stories worth remembering.">
-  <meta property="og:image" content="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=85">
-  <meta name="twitter:card" content="summary_large_image">
-  <title>Vertex Theory</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vertex Theory — stories with a turning point</title>
+<meta name="description" content="Vertex Theory — real stories, told from the moment everything changed.">
+<meta property="og:site_name" content="Vertex Theory">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vertex Theory">
+<meta property="og:description" content="Real stories, told from the moment everything changed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 22'%3E%3Cpath fill='none' stroke='%2314151A' stroke-width='2.4' stroke-linecap='round' d='M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20'/%3E%3Ccircle cx='15' cy='3' r='2.8' fill='%23D4A537'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="utility"><span id="todayLabel"></span><span>Independent ideas, human stories & useful knowledge</span></div>
-    <div class="nav-wrap">
-      <a class="brand" href="/?page=home" aria-label="Vertex Theory home"><span class="brand-mark">V</span><span>VERTEX <i>THEORY</i></span></a>
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
-      <nav id="mainNav"></nav>
+
+<header class="site-header" id="site-header"></header>
+
+<main id="main-content">
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid" id="hero-grid">
+        <div class="hero-feature skel" style="min-height:420px"></div>
+        <div class="hero-side">
+          <div class="hero-side-item"><div class="hero-side-thumb skel"></div><div style="flex:1"><div class="skel" style="height:14px;width:70%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:40%"></div></div></div>
+        </div>
+      </div>
     </div>
-    <div class="mobile-nav" id="mobileNav"></div>
-  </header>
+  </section>
 
-  <main id="app" class="page-shell"><div class="loading">Loading the latest thinking…</div></main>
+  <nav class="category-rail" id="category-rail"></nav>
 
-  <footer class="footer">
-    <div><strong>VERTEX THEORY</strong><p>Ideas worth thinking about. Stories worth remembering.</p></div>
-    <div class="footer-links"><a href="/?page=about">About</a><a href="/?page=privacy">Privacy</a><a href="/admin.html">Admin</a></div>
-    <small>© <span id="year"></span> Vertex Theory. Built for curious humans.</small>
-  </footer>
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title" id="grid-title"><span class="vx-mark">${'' /*mark injected by JS*/}</span></h2>
+      </div>
+      <div class="post-grid" id="post-grid">
+        <div class="post-card"><div class="post-card-thumb skel"></div><div class="post-card-body"><div class="skel" style="height:16px;width:90%"></div><div class="skel" style="height:14px;width:60%"></div></div></div>
+        <div class="post-card"><div class="post-card-thumb skel"></div><div class="post-card-body"><div class="skel" style="height:16px;width:90%"></div><div class="skel" style="height:14px;width:60%"></div></div></div>
+        <div class="post-card"><div class="post-card-thumb skel"></div><div class="post-card-body"><div class="skel" style="height:16px;width:90%"></div><div class="skel" style="height:14px;width:60%"></div></div></div>
+      </div>
+      <div class="load-more-wrap" id="load-more-wrap" style="display:none">
+        <button class="btn btn-outline" id="load-more-btn">Load more stories</button>
+      </div>
+    </div>
+  </section>
 
-  <div class="toast" id="toast" role="status"></div>
-  <script type="module" src="app.js"></script>
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="newsletter" data-animate>
+        <h3>Get the next turning point in your inbox</h3>
+        <p>One email, whenever there's a story worth your time. No noise.</p>
+        <form data-newsletter-form class="newsletter-form">
+          <input type="text" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px" aria-hidden="true">
+          <input type="email" required placeholder="you@email.com" aria-label="Email address">
+          <button type="submit" class="btn btn-gold">Subscribe</button>
+        </form>
+        <div class="newsletter-note">no spam · unsubscribe anytime</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+
+<script type="module" src="/main.js"></script>
 </body>
 </html>

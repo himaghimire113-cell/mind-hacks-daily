@@ -1,45 +1,279 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js';
-import { initializeFirestore, collection, getDocs, getDoc, doc, query, where, orderBy, limit, addDoc, deleteDoc, serverTimestamp, setDoc, onSnapshot, getCountFromServer } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js';
-import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js';
-import { firebaseConfig } from './firebase-config.js';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js';
-let animate = null; let stagger = null;
-async function loadMotion(){try{const m=await import('https://cdn.jsdelivr.net/npm/motion@latest/+esm'); animate=m.animate; stagger=m.stagger;}catch(e){console.warn('Motion unavailable; using CSS fallback.',e)}}
+// ============================================================
+// VERTEX THEORY — shared front-end utilities
+// Used by index.html, post.html and about.html
+// ============================================================
+import { db } from "./firebase-config.js";
+import {
+  collection, doc, getDoc, getDocs, query, where, orderBy,
+  addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { animate, inView, stagger } from "https://cdn.jsdelivr.net/npm/motion@11.11.13/+esm";
 
-const app = initializeApp(firebaseConfig);
-const db = initializeFirestore(app,{experimentalForceLongPolling:true});
-const auth=getAuth(app);
-let visitorUid='';
-signInAnonymously(auth).catch(e=>console.warn('Anonymous auth unavailable',e));
-onAuthStateChanged(auth,u=>{visitorUid=u?.uid||''});
-if (firebaseConfig.measurementId) isSupported().then(ok=>ok&&getAnalytics(app)).catch(()=>{});
-const $=s=>document.querySelector(s); const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const params=new URLSearchParams(location.search); const postSlug=params.get('post'); const category=params.get('category'); const page=params.get('page')||'home';
-let settings={siteTitle:'Vertex Theory',description:'Ideas worth thinking about. Stories worth remembering.',accent:'#c64b2d',accent2:'#243d35'};
-function imgurDirect(url){if(!url)return ''; try{const u=new URL(url);if(!u.hostname.includes('imgur.com'))return url; const path=u.pathname.replace(/^\//,''); if(u.hostname==='i.imgur.com')return url; let id=path.split('/').pop(); id=id.replace(/\.(jpg|jpeg|png|gif|webp)$/i,''); if(!id)return url; return `https://i.imgur.com/${id}.jpg`;}catch{return url}}
-function fmt(ts){const d=ts?.toDate?ts.toDate():new Date(ts);return isNaN(d)?'':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-async function getSettings(){try{const s=await getDoc(doc(db,'settings','site'));if(s.exists())settings={...settings,...s.data()}}catch(e){console.warn(e)} document.title=settings.siteTitle; document.documentElement.style.setProperty('--accent',settings.accent||'#c64b2d');document.documentElement.style.setProperty('--accent2',settings.accent2||'#243d35');$('.brand').innerHTML=`<span class="brand-mark">V</span><span>${esc(settings.siteTitle).toUpperCase()}</span>`}
-async function posts(categoryName=''){let q=query(collection(db,'posts'),where('status','==','published'),orderBy('publishedAt','desc'));if(categoryName)q=query(collection(db,'posts'),where('status','==','published'),where('category','==',categoryName),orderBy('publishedAt','desc'));const snap=await getDocs(q);return snap.docs.map(d=>({id:d.id,...d.data()}))}
-function motionEntrance(){try{if(!animate)return; animate('.post-card',{opacity:[0,1],y:[12,0]},{duration:.45,delay:stagger(.045),ease:'easeOut'});animate('.hero-copy',{opacity:[0,1],x:[-12,0]},{duration:.6,ease:'easeOut'});animate('.hero-image',{opacity:[0,1],scale:[.985,1]},{duration:.7,ease:'easeOut'})}catch(e){}}
-function nav(cats){const links=[['Home','/?page=home'],...cats.slice(0,6).map(c=>[c,`/?category=${encodeURIComponent(c)}`]),['About','/?page=about']];$('#mainNav').innerHTML=links.map(x=>`<a href="${x[1]}">${esc(x[0])}</a>`).join('');$('#mobileNav').innerHTML=links.map(x=>`<a href="${x[1]}">${esc(x[0])}</a>`).join('')}
-function postCard(p){return `<a class="post-card" href="/?post=${encodeURIComponent(p.slug||p.id)}"><img class="thumb" src="${esc(imgurDirect(p.image))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="meta"><span class="tag">${esc(p.category||'Featured')}</span> · ${esc(fmt(p.publishedAt||p.createdAt))}</div><h3>${esc(p.title)}</h3><p>${esc(p.excerpt||'A thoughtful look at an idea that matters in everyday life.')}</p><div class="meta">${esc(p.author||'Vertex Theory')} · ${esc(p.readTime||'5 min read')}</div></div></a>`}
-function hotCard(p){return `<a class="hot-card" href="/?post=${encodeURIComponent(p.slug||p.id)}"><h3>${esc(p.title)}</h3></a>`}
-function newsletter(){return `<section class="newsletter"><h3>One good read, occasionally.</h3><p>No noise. Just the best new ideas from Vertex Theory.</p><form id="subscribeForm"><input type="email" name="email" placeholder="Your email" required><button>Join</button></form></section>`}
-function articleActions(p){return `<section class="article-actions" data-post-id="${esc(p.id)}"><div class="stat-group"><button class="action-btn like-btn" type="button" aria-label="Like this article"><span>♡</span> <b class="like-count">0</b></button><span class="stat"><b class="comment-count">0</b> comments</span><span class="stat"><b class="share-count">0</b> shares</span></div><button class="action-btn share-main" type="button">Share ↗</button></section><div class="share-menu hidden"><button data-share="native">Share on your device</button><button data-share="facebook">Facebook</button><button data-share="whatsapp">WhatsApp</button><button data-share="x">X</button><button data-share="copy">Copy link</button></div><section class="comments"><div class="comments-head"><h2>Comments</h2><span class="meta">Thoughtful conversation is welcome.</span></div><form class="comment-form" id="commentForm"><input name="name" maxlength="60" placeholder="Your name" required><textarea name="comment" maxlength="1000" placeholder="Leave a thoughtful comment…" required></textarea><button class="button">Post comment</button></form><div class="comment-note">Comments are reviewed before they appear publicly.</div><div class="comment-list" id="commentList"><div class="meta">Loading comments…</div></div></section>`}
-async function home(){const ps=await posts();const cats=[...new Set(ps.map(p=>p.category).filter(Boolean))];nav(cats);const lead=ps[0];$('#app').innerHTML=`<section class="hot-strip"><div class="hot-label">What's hot</div>${ps.slice(0,3).map(hotCard).join('')}</section><div class="date-row">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>${lead?`<section class="hero"><div class="hero-copy"><div class="kicker">${esc(lead.category||'Editor's pick')}</div><h1>${esc(lead.title)}</h1><p>${esc(lead.excerpt||'Ideas, stories and useful context for a life lived with curiosity.')}</p><div class="meta">${esc(lead.author||'Vertex Theory')} · ${esc(fmt(lead.publishedAt||lead.createdAt))}</div></div><a class="hero-image" href="/?post=${encodeURIComponent(lead.slug||lead.id)}" style="background-image:url('${esc(imgurDirect(lead.image))}')"></a></section>`:''}<div class="section-head"><h2>Latest articles</h2><a href="/?page=home">View all</a></div><div class="content-grid"><section class="post-list">${ps.slice(1).map(postCard).join('')||'<div class="empty">No published posts yet. Add your first one from the admin panel.</div>'}</section><aside class="sidebar"><h3>Popular categories</h3>${cats.slice(0,8).map(c=>`<a class="side-item" href="/?category=${encodeURIComponent(c)}"><strong>${esc(c)}</strong><span class="meta">Explore the latest</span></a>`).join('')}${newsletter()}</aside></div>`;bindSubscribe();motionEntrance()}
-async function categoryPage(c){const ps=await posts(c);nav([...new Set(ps.map(p=>p.category).filter(Boolean))]);$('#app').innerHTML=`<div class="category-title">${esc(c)}</div><p class="date-row">Stories and ideas filed under ${esc(c)}.</p><div class="content-grid"><section class="post-list">${ps.map(postCard).join('')||'<div class="empty">Nothing published here yet.</div>'}</section><aside class="sidebar">${newsletter()}</aside></div>`;bindSubscribe();motionEntrance()}
-async function article(slug){const q=query(collection(db,'posts'),where('slug','==',slug),where('status','==','published'),limit(1));const s=await getDocs(q);if(s.empty){$('#app').innerHTML='<div class="error">That article could not be found.</div>';return}const p={id:s.docs[0].id,...s.docs[0].data()};nav([p.category].filter(Boolean));const image=imgurDirect(p.image);document.title=`${p.title} | ${settings.siteTitle}`;setMeta('og:title',p.title);setMeta('og:description',p.excerpt||settings.description);setMeta('og:image',image);$('#app').innerHTML=`<article class="article"><header class="article-head"><div class="kicker">${esc(p.category||'Feature')}</div><h1>${esc(p.title)}</h1><p class="lead">${esc(p.excerpt||'')}</p><div class="meta">By ${esc(p.author||'Vertex Theory')} · ${esc(fmt(p.publishedAt||p.createdAt))} · ${esc(p.readTime||'5 min read')}</div></header>${image?`<img class="article-hero" src="${esc(image)}" alt="${esc(p.title)}">`:''}<div class="article-body">${p.body||''}</div>${articleActions(p)}<div style="margin-top:45px">${newsletter()}</div></article>`;bindSubscribe();bindArticleActions(p)}
+export { animate, inView, stagger };
 
-async function countSubcollection(postId,sub){try{return (await getCountFromServer(collection(db,'posts',postId,sub))).data().count}catch{return 0}}
-async function refreshStats(postId){const root=document.querySelector(`.article-actions[data-post-id="${CSS.escape(postId)}"]`);if(!root)return;const [likes,comments,shares]=await Promise.all([countSubcollection(postId,'likes'),countSubcollection(postId,'comments'),countSubcollection(postId,'shares')]);root.querySelector('.like-count').textContent=likes;root.querySelector('.comment-count').textContent=comments;root.querySelector('.share-count').textContent=shares;if(visitorUid){const l=await getDoc(doc(db,'posts',postId,'likes',visitorUid));const b=root.querySelector('.like-btn');b.classList.toggle('liked',l.exists());b.querySelector('span').textContent=l.exists()?'♥':'♡'}}
-async function bindArticleActions(p){const root=document.querySelector(`.article-actions[data-post-id="${CSS.escape(p.id)}"]`);if(!root)return;const menu=root.nextElementSibling;await refreshStats(p.id);root.querySelector('.like-btn').onclick=async()=>{if(!visitorUid){toast('Please try again in a moment.');return}const ref=doc(db,'posts',p.id,'likes',visitorUid);const existing=await getDoc(ref);try{if(existing.exists())await deleteDoc(ref);else await setDoc(ref,{visitorId:visitorUid,createdAt:serverTimestamp()});await refreshStats(p.id)}catch{toast('Could not update your like right now.')}};root.querySelector('.share-main').onclick=()=>menu.classList.toggle('hidden');menu.querySelectorAll('[data-share]').forEach(btn=>btn.onclick=()=>sharePost(p,btn.dataset.share));const form=document.querySelector('#commentForm');form.onsubmit=async e=>{e.preventDefault();if(!visitorUid){toast('Please try again in a moment.');return}const fd=new FormData(form);const name=fd.get('name').toString().trim();const text=fd.get('comment').toString().trim();if(name.length<2||text.length<3||text.length>1000)return toast('Please check your comment.');const last=Number(localStorage.getItem('vt_comment_time')||0);if(Date.now()-last<30000)return toast('Please wait a little before commenting again.');try{await addDoc(collection(db,'posts',p.id,'comments'),{name,comment:text,status:'pending',visitorId:visitorUid,createdAt:serverTimestamp()});localStorage.setItem('vt_comment_time',String(Date.now()));form.reset();toast('Comment submitted for review.')}catch{toast('Could not submit your comment.')}};loadComments(p.id)}
-async function loadComments(postId){const list=document.querySelector('#commentList');try{const q=query(collection(db,'posts',postId,'comments'),where('status','==','approved'),orderBy('createdAt','desc'),limit(50));const snap=await getDocs(q);list.innerHTML=snap.docs.map(d=>{const c=d.data();return `<div class="comment"><strong>${esc(c.name)}</strong><div class="meta">${esc(fmt(c.createdAt))}</div><p>${esc(c.comment)}</p></div>`}).join('')||'<div class="meta">No comments yet.</div>'}catch{list.innerHTML='<div class="meta">Comments are temporarily unavailable.</div>'}}
-async function sharePost(p,type){const url=location.origin+'/?post='+encodeURIComponent(p.slug||p.id);const text=p.title+' | '+settings.siteTitle;try{if(type==='native'&&navigator.share){await navigator.share({title:p.title,text, url});await recordShare(p.id);return}if(type==='copy'){await navigator.clipboard.writeText(url);toast('Link copied.');await recordShare(p.id);return}const links={facebook:'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url),whatsapp:'https://wa.me/?text='+encodeURIComponent(text+' '+url),x:'https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url)};if(links[type]){window.open(links[type],'_blank','noopener,noreferrer');await recordShare(p.id)}}catch(e){if(e?.name!=='AbortError')toast('Sharing was not available.')}}
-async function recordShare(postId){if(!visitorUid)return;const key='vt_share_'+postId;const last=Number(localStorage.getItem(key)||0);if(Date.now()-last<15000)return;try{await addDoc(collection(db,'posts',postId,'shares'),{visitorId:visitorUid,createdAt:serverTimestamp()});localStorage.setItem(key,String(Date.now()));refreshStats(postId)}catch{}}
-function setMeta(name,content){let m=document.querySelector(`meta[property="${name}"]`);if(!m){m=document.createElement('meta');m.setAttribute('property',name);document.head.appendChild(m)}m.setAttribute('content',content||'')}
-function about(){nav([]);$('#app').innerHTML=`<section class="about"><div class="kicker">About Vertex Theory</div><h1>Curiosity is a useful habit.</h1><p>Vertex Theory is an independent digital publication about the things that quietly shape our lives: how we think, how we spend, how we age, how we work, and how we make sense of the world around us.</p><p>We keep the writing human. That means useful context, clear explanations and stories that respect the reader's intelligence. No manufactured urgency, no pretending every ordinary detail is a life-changing revelation.</p><p>Our categories are intentionally flexible. As the publication grows, new topics can be added directly from the admin panel without changing the website code.</p><h2>What we publish</h2><p>Psychology, money, health, lifestyle, technology, relationships, culture and any other category worth exploring. Every published article comes from the same simple goal: leave the reader with something genuinely useful.</p></section>`}
-function privacy(){nav([]);$('#app').innerHTML=`<section class="about"><div class="kicker">Privacy</div><h1>Your inbox is not a business model.</h1><p>Vertex Theory stores newsletter email addresses in Firebase Firestore so subscriptions can be managed. We do not publish subscriber addresses on the site.</p><p>Analytics may be enabled through Firebase Analytics to understand aggregate site usage. The site may also contain affiliate links. Affiliate relationships never change the editorial price you pay.</p></section>`}
-function bindSubscribe(){$('#subscribeForm')?.addEventListener('submit',async e=>{e.preventDefault();const email=new FormData(e.currentTarget).get('email').toString().trim().toLowerCase();try{await addDoc(collection(db,'subscribers'),{email,createdAt:serverTimestamp(),source:'website'});toast('You’re on the list.');e.currentTarget.reset()}catch(err){toast('Could not subscribe right now.')}})}
-function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2600)}
-$('#menuBtn').onclick=()=>$('#mobileNav').classList.toggle('open');$('#year').textContent=new Date().getFullYear();$('#todayLabel').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-(async()=>{try{await loadMotion(); await getSettings();if(postSlug)await article(postSlug);else if(category)await categoryPage(category);else if(page==='about')about();else if(page==='privacy')privacy();else await home()}catch(e){console.error(e);$('#app').innerHTML='<div class="error"><strong>Vertex Theory could not load its content.</strong><br>Check Firebase configuration and Firestore rules.</div>'}})();
+/* ---------------- Vertex mark (inline SVG, reused everywhere) --------------- */
+export function vertexMarkSVG(){
+  return `<svg viewBox="0 0 30 22" aria-hidden="true">
+    <path class="curve" d="M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20" />
+    <circle class="dot" cx="15" cy="3" r="2.6" />
+  </svg>`;
+}
+
+export function vertexDividerSVG(){
+  return `<svg class="vx-divider" viewBox="0 0 400 34" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="none" stroke="currentColor" stroke-width="1.4" d="M0 30 C 90 30, 130 4, 200 4 S 310 30, 400 30" />
+    <circle cx="200" cy="4" r="3" fill="currentColor"/>
+  </svg>`;
+}
+
+/* ---------------- Settings (site branding) — cached in sessionStorage ------- */
+const DEFAULT_SETTINGS = {
+  siteTitle: "Vertex",
+  siteTitleAccent: "Theory",
+  tagline: "Every story has a turning point.",
+  colorGold: "#D4A537",
+  colorBlue: "#2F5D8A",
+  colorCoral: "#C6402F",
+  featuredPostSlug: "",
+  adSponsorName: "Advertise here",
+  adSponsorText: "Reach readers who read to the end. Get in touch to sponsor this space.",
+  adSponsorLink: "#",
+  footerNote: "Independent stories, told straight."
+};
+
+export async function getSettings(){
+  try{
+    const cached = sessionStorage.getItem("vx_settings");
+    if (cached) return { ...DEFAULT_SETTINGS, ...JSON.parse(cached) };
+  }catch(e){}
+  try{
+    const snap = await getDoc(doc(db, "settings", "site"));
+    const data = snap.exists() ? snap.data() : {};
+    const merged = { ...DEFAULT_SETTINGS, ...data };
+    try{ sessionStorage.setItem("vx_settings", JSON.stringify(merged)); }catch(e){}
+    applyThemeColors(merged);
+    return merged;
+  }catch(e){
+    console.warn("Settings fetch failed, using defaults", e);
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function applyThemeColors(settings){
+  const root = document.documentElement.style;
+  if (settings.colorGold) root.setProperty("--gold-bright", settings.colorGold);
+  if (settings.colorBlue) root.setProperty("--blue", settings.colorBlue);
+  if (settings.colorCoral) root.setProperty("--coral", settings.colorCoral);
+}
+
+/* ---------------- Imgur helper ---------------- */
+// Converts an Imgur *page* URL (imgur.com/abc123) or gallery URL into a
+// direct image URL (i.imgur.com/abc123.jpg). Leaves already-direct URLs,
+// and non-imgur URLs, untouched.
+export function resolveImageUrl(url){
+  if (!url) return "";
+  url = url.trim();
+  try{
+    const u = new URL(url);
+    if (!/(^|\.)imgur\.com$/.test(u.hostname)) return url;
+    if (u.hostname === "i.imgur.com") return url; // already direct
+    // /gallery/abc123 or /a/abc123 or /abc123 or /t/tag/abc123
+    const parts = u.pathname.split("/").filter(Boolean);
+    let id = parts[parts.length - 1];
+    id = id.replace(/\.(jpg|jpeg|png|gif|webp)$/i, "");
+    if (!id || id === "gallery" || id === "a") return url;
+    return `https://i.imgur.com/${id}.jpg`;
+  }catch(e){
+    return url;
+  }
+}
+
+/* ---------------- Read time ---------------- */
+export function computeReadTime(html){
+  const text = String(html || "").replace(/<[^>]*>/g, " ");
+  const words = (text.match(/\S+/g) || []).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+/* ---------------- Formatting ---------------- */
+export function formatDate(ts){
+  let d;
+  if (!ts) return "";
+  if (ts.toDate) d = ts.toDate();
+  else d = new Date(ts);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", { day:"2-digit", month:"short", year:"numeric" });
+}
+
+export function escapeHtml(str){
+  return String(str || "").replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+export function slugify(str){
+  return String(str || "")
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/* ---------------- Query params (defensive — ignores fbclid etc.) ---------------- */
+export function getParam(name){
+  try{
+    return new URLSearchParams(window.location.search).get(name);
+  }catch(e){ return null; }
+}
+
+/* ---------------- Toast ---------------- */
+let toastEl, toastTimer;
+export function toast(msg, isErr){
+  if (!toastEl){
+    toastEl = document.createElement("div");
+    toastEl.className = "toast";
+    document.body.appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  toastEl.classList.toggle("err", !!isErr);
+  requestAnimationFrame(() => toastEl.classList.add("show"));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 3200);
+}
+
+/* ---------------- Newsletter signup (shared across pages) ---------------- */
+export function wireNewsletterForms(){
+  document.querySelectorAll("[data-newsletter-form]").forEach((form) => {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const input = form.querySelector("input[type=email]");
+      const btn = form.querySelector("button");
+      const email = (input.value || "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        toast("Enter a valid email address", true);
+        return;
+      }
+      // honeypot — silently "succeed" for bots without writing
+      const honeypot = form.querySelector("input[name=website]");
+      if (honeypot && honeypot.value){ input.value = ""; toast("Subscribed"); return; }
+
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.innerHTML = '<span class="spin"></span>';
+      try{
+        const existing = await getDocs(query(collection(db, "subscribers"), where("email", "==", email)));
+        if (existing.empty){
+          await addDoc(collection(db, "subscribers"), {
+            email,
+            source: location.pathname,
+            createdAt: serverTimestamp()
+          });
+        }
+        toast("You're subscribed — welcome aboard.");
+        input.value = "";
+      }catch(err){
+        console.error(err);
+        toast("Couldn't subscribe right now. Try again shortly.", true);
+      }finally{
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    });
+  });
+}
+
+/* ---------------- Header / nav (shared shell) ---------------- */
+export async function renderHeader(activePage){
+  const mount = document.getElementById("site-header");
+  if (!mount) return;
+  const settings = await getSettings();
+  document.title = document.title || settings.siteTitle;
+
+  const today = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric" });
+
+  mount.innerHTML = `
+    <div class="header-row">
+      <div class="header-date">${today}</div>
+      <a href="/" class="vx-mark">
+        ${vertexMarkSVG()}
+        <span class="vx-wordmark">${escapeHtml(settings.siteTitle)} <em>${escapeHtml(settings.siteTitleAccent)}</em></span>
+      </a>
+      <nav class="main-nav nav-desktop">
+        <a href="/" class="${activePage==='home'?'active':''}">Home</a>
+        <a href="/?category=life-story" class="${activePage==='category'?'active':''}">Stories</a>
+        <a href="/about.html" class="${activePage==='about'?'active':''}">About</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-btn" id="menu-toggle" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobile-nav">
+      <a href="/">Home</a>
+      <a href="/?category=life-story">Stories</a>
+      <a href="/about.html">About</a>
+    </nav>
+  `;
+
+  const toggle = document.getElementById("menu-toggle");
+  const navEl = document.getElementById("mobile-nav");
+  toggle.addEventListener("click", () => {
+    const open = navEl.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+
+  return settings;
+}
+
+export function renderFooter(settings){
+  const mount = document.getElementById("site-footer");
+  if (!mount) return;
+  const s = settings || DEFAULT_SETTINGS;
+  mount.innerHTML = `
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="vx-mark" style="color:#fff">
+            ${vertexMarkSVG()}
+            <span class="vx-wordmark" style="color:#fff">${escapeHtml(s.siteTitle)} <em>${escapeHtml(s.siteTitleAccent)}</em></span>
+          </a>
+          <p>${escapeHtml(s.footerNote)}</p>
+        </div>
+        <div class="footer-col">
+          <h5>Explore</h5>
+          <a href="/">Home</a>
+          <a href="/?category=life-story">Life story</a>
+          <a href="/?category=moral">Moral</a>
+          <a href="/about.html">About</a>
+        </div>
+        <div class="footer-col">
+          <h5>Stay in touch</h5>
+          <a href="/about.html">Contact / About</a>
+          <a href="/admin.html">Admin</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© ${new Date().getFullYear()} ${escapeHtml(s.siteTitle)} ${escapeHtml(s.siteTitleAccent)}. All rights reserved.</span>
+        <span>built on a vertex</span>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------- Ad slot renderer ---------------- */
+export function adSlotHTML(s){
+  return `
+    <div class="ad-slot">
+      <span class="ad-slot-label">Presented by</span>
+      <div class="ad-slot-body">
+        <div class="sponsor-name">${escapeHtml(s.adSponsorName)}</div>
+        <p>${escapeHtml(s.adSponsorText)}</p>
+      </div>
+      <a href="${escapeHtml(s.adSponsorLink)}" class="btn btn-outline btn-sm" target="_blank" rel="noopener sponsored">Learn more</a>
+    </div>
+  `;
+}
+
+export { collection, doc, getDoc, getDocs, query, where, orderBy, addDoc, serverTimestamp };

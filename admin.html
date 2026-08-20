@@ -1,2 +1,203 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vertex Theory Admin</title><link rel="stylesheet" href="styles.css"><style>body{min-height:100vh}.admin-shell{max-width:1180px;margin:auto;padding:25px 18px}.admin-top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:20px}.admin-grid{display:grid;grid-template-columns:190px 1fr;gap:25px}.tabs{display:grid;align-content:start;gap:6px}.tabs button{background:none;border:1px solid transparent;text-align:left;padding:11px;cursor:pointer}.tabs button.active{border-color:var(--line);background:var(--paper);font-weight:700}.panel{background:var(--paper);border:1px solid var(--line);padding:22px}.field{display:grid;gap:6px;margin-bottom:15px}.field label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.field input,.field textarea,.field select{border:1px solid var(--line);background:white;padding:11px;width:100%}.field textarea{min-height:260px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:15px}.post-row{display:flex;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid var(--line)}.login{max-width:430px;margin:10vh auto;padding:25px;background:var(--paper);border:1px solid var(--line)}.danger{background:#7d211b}.hidden{display:none!important}@media(max-width:700px){.admin-grid{grid-template-columns:1fr}.two{grid-template-columns:1fr}.admin-top{align-items:flex-start;gap:10px}.post-row{display:grid}}
-</style></head><body><div class="admin-shell"><div id="loginView" class="login"><div class="kicker">Vertex Theory</div><h1 style="font-family:'Libre Baskerville',serif">Admin</h1><p class="meta">Sign in with the Firebase Auth account designated as the site administrator.</p><form id="loginForm"><div class="field"><label>Email</label><input id="email" type="email" required></div><div class="field"><label>Password</label><input id="password" type="password" required></div><button class="button">Sign in</button></form><p id="loginError" class="error hidden"></p></div><div id="adminView" class="hidden"><div class="admin-top"><div><div class="kicker">Control room</div><h1 style="font-family:'Libre Baskerville',serif;margin:3px 0">Vertex Theory</h1><div class="meta" id="who"></div></div><button class="button" id="logout">Sign out</button></div><div class="admin-grid"><aside class="tabs"><button data-tab="posts" class="active">Posts</button><button data-tab="editor">Post editor</button><button data-tab="appearance">Appearance</button><button data-tab="subscribers">Subscribers</button><button data-tab="comments">Comments</button></aside><main><section id="tab-posts" class="panel tab"><h2>Posts</h2><button class="button" id="newPost">+ New post</button><div id="postList"></div></section><section id="tab-editor" class="panel tab hidden"><h2 id="editorTitle">New post</h2><form id="postForm"><input id="postId" type="hidden"><div class="field"><label>Title</label><input id="postTitle" required></div><div class="two"><div class="field"><label>Category</label><input id="postCategory" placeholder="Type any category you want" required></div><div class="field"><label>Status</label><select id="postStatus"><option value="draft">Draft</option><option value="published">Published</option></select></div></div><div class="field"><label>Slug</label><input id="postSlug" placeholder="my-article-title" required></div><div class="field"><label>Excerpt</label><textarea id="postExcerpt" style="min-height:100px"></textarea></div><div class="field"><label>Thumbnail / hero image URL</label><input id="postImage" placeholder="https://... or Imgur share URL"></div><div class="two"><div class="field"><label>Author</label><input id="postAuthor" value="Vertex Theory"></div><div class="field"><label>Read time</label><input id="postReadTime" value="5 min read"></div></div><div class="field"><label>Tags (comma separated)</label><input id="postTags"></div><div class="field"><label>Body HTML</label><textarea id="postBody" placeholder="Write HTML here. Example: <p>Your article...</p><p><a href='https://example.com'>Affiliate link</a></p>"></textarea></div><button class="button">Save post</button> <button type="button" class="button danger hidden" id="deletePost">Delete</button></form></section><section id="tab-appearance" class="panel tab hidden"><h2>Appearance</h2><form id="appearanceForm"><div class="field"><label>Site title</label><input id="siteTitle"></div><div class="field"><label>Description</label><textarea id="siteDescription" style="min-height:120px"></textarea></div><div class="two"><div class="field"><label>Accent color</label><input id="accent" type="color"></div><div class="field"><label>Secondary color</label><input id="accent2" type="color"></div></div><button class="button">Save appearance</button></form></section><section id="tab-subscribers" class="panel tab hidden"><h2>Subscribers</h2><div id="subscriberList"></div></section><section id="tab-comments" class="panel tab hidden"><h2>Comments</h2><p class="meta">Approve or remove comments before they appear publicly.</p><div id="commentList"></div></section></main></div></div></div><div class="toast" id="toast"></div><script type="module" src="admin.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Vertex Theory</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 22'%3E%3Cpath fill='none' stroke='%2314151A' stroke-width='2.4' stroke-linecap='round' d='M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20'/%3E%3Ccircle cx='15' cy='3' r='2.8' fill='%23D4A537'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body class="admin-body">
+
+<!-- ===== LOGIN ===== -->
+<div class="admin-login" id="admin-login">
+  <div class="admin-login-card">
+    <div class="vx-mark">
+      <svg viewBox="0 0 30 22"><path class="curve" d="M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20"/><circle class="dot" cx="15" cy="3" r="2.6"/></svg>
+      <span class="vx-wordmark">Vertex <em>Theory</em></span>
+    </div>
+    <h1 style="font-family:var(--font-display);font-size:1.3rem;font-weight:800;margin:0 0 4px">Admin sign in</h1>
+    <p style="font-size:.85rem;color:var(--ink-faint);margin:0 0 20px">Authorized editors only.</p>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="login-btn">Sign in</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== ADMIN SHELL ===== -->
+<div class="admin-shell" id="admin-shell" style="display:none">
+  <aside class="admin-sidebar">
+    <div class="vx-mark">
+      <svg viewBox="0 0 30 22"><path class="curve" d="M2 20 C 9 20, 11 3, 15 3 S 21 20, 28 20"/><circle class="dot" cx="15" cy="3" r="2.6"/></svg>
+      <span class="vx-wordmark">Vertex <em>Theory</em></span>
+    </div>
+    <button class="admin-nav-btn active" data-view="posts">Posts</button>
+    <button class="admin-nav-btn" data-view="appearance">Appearance</button>
+    <button class="admin-nav-btn" data-view="subscribers">Subscribers</button>
+    <button class="admin-nav-btn" data-view="messages">Messages</button>
+    <div class="admin-sidebar-foot">
+      <button class="admin-nav-btn" id="logout-btn">Sign out</button>
+      <a class="admin-nav-btn" href="/" target="_blank" style="display:flex">View site ↗</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <strong id="topbar-title" style="font-family:var(--font-display)">Posts</strong>
+      <span id="topbar-user" style="font-size:.8rem;color:var(--ink-faint)"></span>
+    </div>
+    <div class="admin-mobile-tabs">
+      <button class="chip active" data-view="posts">Posts</button>
+      <button class="chip" data-view="appearance">Appearance</button>
+      <button class="chip" data-view="subscribers">Subscribers</button>
+      <button class="chip" data-view="messages">Messages</button>
+      <button class="chip" id="logout-btn-mobile">Sign out</button>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- POSTS -->
+      <section class="admin-view active" id="view-posts">
+        <div class="admin-head">
+          <h1>Posts</h1>
+          <button class="btn btn-gold" id="new-post-btn">+ New post</button>
+        </div>
+        <div class="stat-row" id="post-stats"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Date</th><th></th></tr></thead>
+            <tbody id="posts-tbody"><tr><td colspan="5" style="text-align:center;padding:30px"><span class="spin"></span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- APPEARANCE -->
+      <section class="admin-view" id="view-appearance">
+        <div class="admin-head"><h1>Appearance</h1></div>
+
+        <div class="card">
+          <h3 class="card-title">Branding</h3>
+          <div class="two-col">
+            <div class="field"><label for="set-title">Site title</label><input id="set-title"></div>
+            <div class="field"><label for="set-accent">Accent word</label><input id="set-accent"></div>
+          </div>
+          <div class="field"><label for="set-tagline">Tagline</label><input id="set-tagline"></div>
+          <div class="field"><label for="set-footer">Footer note</label><input id="set-footer"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Colors</h3>
+          <div class="two-col">
+            <div class="field">
+              <label for="set-gold">Accent gold</label>
+              <div class="color-input-row"><input type="color" id="set-gold-c"><input type="text" id="set-gold"></div>
+            </div>
+            <div class="field">
+              <label for="set-blue">Link blue</label>
+              <div class="color-input-row"><input type="color" id="set-blue-c"><input type="text" id="set-blue"></div>
+            </div>
+            <div class="field">
+              <label for="set-coral">Coral accent</label>
+              <div class="color-input-row"><input type="color" id="set-coral-c"><input type="text" id="set-coral"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Featured post</h3>
+          <div class="field">
+            <label for="set-featured">Homepage hero post</label>
+            <select id="set-featured"><option value="">— most recent —</option></select>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Sponsor / ad slot</h3>
+          <p class="hint" style="margin-top:-8px;margin-bottom:16px">Shown under every post body as "Presented by …".</p>
+          <div class="field"><label for="set-ad-name">Sponsor name</label><input id="set-ad-name"></div>
+          <div class="field"><label for="set-ad-text">Sponsor text</label><input id="set-ad-text"></div>
+          <div class="field"><label for="set-ad-link">Sponsor link</label><input id="set-ad-link" placeholder="https://"></div>
+        </div>
+
+        <button class="btn btn-primary" id="save-settings-btn">Save changes</button>
+      </section>
+
+      <!-- SUBSCRIBERS -->
+      <section class="admin-view" id="view-subscribers">
+        <div class="admin-head">
+          <h1>Subscribers</h1>
+          <button class="btn btn-outline" id="export-csv-btn">Export CSV</button>
+        </div>
+        <div class="stat-row" id="sub-stats"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Source</th><th>Subscribed</th><th></th></tr></thead>
+            <tbody id="subs-tbody"><tr><td colspan="4" style="text-align:center;padding:30px"><span class="spin"></span></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MESSAGES -->
+      <section class="admin-view" id="view-messages">
+        <div class="admin-head"><h1>Messages &amp; comments</h1></div>
+        <div id="messages-list"><div style="text-align:center;padding:30px"><span class="spin"></span></div></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== POST EDITOR MODAL ===== -->
+<div class="modal-overlay" id="editor-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="editor-title">New post</h2>
+      <button class="icon-btn" id="editor-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <form id="editor-form">
+      <input type="hidden" id="e-id">
+      <div class="field"><label for="e-title">Title</label><input id="e-title" required></div>
+      <div class="field"><label for="e-slug">URL slug</label><input id="e-slug" required><p class="hint">Used in the link: /post.html?post=your-slug</p></div>
+      <div class="two-col">
+        <div class="field"><label for="e-category">Category</label><input id="e-category" placeholder="e.g. Life story"></div>
+        <div class="field"><label for="e-author">Author</label><input id="e-author" placeholder="Vertex Theory"></div>
+      </div>
+      <div class="field"><label for="e-tags">Tags (comma separated)</label><input id="e-tags" placeholder="family, drama"></div>
+      <div class="field"><label for="e-image">Cover image URL (Imgur link auto-converts)</label><input id="e-image" placeholder="https://imgur.com/..."></div>
+      <div class="field"><label for="e-excerpt">Excerpt</label><textarea id="e-excerpt" rows="2" maxlength="220"></textarea></div>
+      <div class="field">
+        <label for="e-body">Body (HTML or plain text paragraphs)</label>
+        <textarea id="e-body" class="rte" required placeholder="Write your story here. You can paste HTML (e.g. &lt;a href=&quot;...&quot;&gt;affiliate link&lt;/a&gt;) or plain paragraphs."></textarea>
+        <p class="hint" id="e-readtime-hint">Estimated read time: 1 min</p>
+      </div>
+      <div class="field">
+        <label for="e-status">Status</label>
+        <select id="e-status">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button type="submit" class="btn btn-primary" id="editor-save-btn">Save post</button>
+        <button type="button" class="btn btn-outline" id="editor-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="editor-delete-btn" style="margin-left:auto;display:none">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module" src="/admin.js"></script>
+</body>
+</html>
